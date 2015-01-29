@@ -99,6 +99,7 @@ veyron-binaries: clients/shell/src/v.io
 	$(GO) install \
 	v.io/core/veyron2/vdl/vdl \
 	v.io/core/veyron/services/mounttable/mounttabled \
+	v.io/core/veyron/tools/principal \
 	v.io/core/veyron/tools/servicerunner
 
 clients/shell/src/github.com/fatih/color:
