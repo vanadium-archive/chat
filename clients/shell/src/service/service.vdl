@@ -1,0 +1,6 @@
+package service
+
+type Chat interface {
+	// SendMessage sends a message to a user.
+	SendMessage(Text string) error {}
+}

@@ -1,0 +1,14 @@
+.messages {
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.messages .message .timestamp,
+.messages .message .sender {
+  margin-right: 8px;
+  font-weight: 600;
+}
+
+.messages .message .timestamp {
+  color: var(--color-hint);
+}

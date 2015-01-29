@@ -1,0 +1,24 @@
+:root {
+  --color-status-active: #259b24;
+}
+
+.members {
+  background-color: var(--color-background-light);
+  color: var(--color-text);
+  padding: 8px;
+}
+
+.members .title {
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.members ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.members .status-active {
+  color: var(--color-status-active);
+  margin-right: 4px;
+}

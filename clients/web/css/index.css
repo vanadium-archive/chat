@@ -1,0 +1,104 @@
+/* TODO(sadovsky): Maybe use https://www.npmjs.org/package/insert-css to import
+   CSS for each UI component. But note, in that case we'd need to run rework on
+   each file independently. */
+
+@import "./compose.css";
+@import "./members.css";
+@import "./messages.css";
+@import "./navbar.css";
+
+/* http://www.google.com/design/spec/style/color.html */
+:root {
+  --color-text: rgba(#000, 0.87);
+  --color-secondary: rgba(#000, 0.54);
+  --color-hint: rgba(#000, 0.26);
+
+  --color-background-light: #f5f5f5;
+  --color-background-dark: #424242;
+  --color-divider: #e0e0e0;
+
+  --color-alert-error-background: #c41411;
+  --color-alert-info-background: #455a64;
+}
+
+*, :before, :after {
+  box-sizing: border-box;
+}
+
+html {
+  overflow: hidden;
+}
+
+body {
+  font: 400 14px/1.5 "Open Sans", sans-serif;
+  color: var(--color-text);
+  margin: 0;
+}
+
+#c {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.instructions {
+  margin: 8px;
+}
+
+.alert-error,
+.alert-info {
+  border-radius: 4px;
+  color: white;
+  display: inline-block;
+  font-weight: bold;
+  margin: 8px;
+  padding: 8px;
+}
+
+.alert-error {
+  background-color: var(--color-alert-error-background);
+}
+
+.alert-info {
+  background-color: var(--color-alert-info-background);
+}
+
+.navbar {
+  position: relative;
+}
+
+.messages-members {
+  display: flex;
+  flex: 1;
+}
+
+.messages {
+  position: relative;
+  flex: 1;
+}
+
+.members {
+  position: relative;
+  width: 240px;
+  border-left: 1px solid var(--color-divider);
+}
+
+@media (max-width: 767px) {
+  .members {
+    display: none;
+  }
+}
+
+.compose {
+  position: relative;
+  border-top: 1px solid var(--color-divider);
+}
