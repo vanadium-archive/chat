@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path"
 	"regexp"
 	"testing"
 	"time"
@@ -167,14 +166,7 @@ func testBroadcastMessage(t *testing.T) {
 // status text.  Consider making a go library that knows how to start common
 // services and return relavent bits of information.
 func startMounttabled() (*os.Process, string, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return nil, "", fmt.Errorf("os.Getwd() failed: %v", err)
-	}
-
-	mounttabled := path.Join(cwd, "..", "..", "bin", "mounttabled")
-
-	cmd := exec.Command(mounttabled, "--veyron.tcp.address=127.0.0.1:0")
+	cmd := exec.Command("mounttabled", "--veyron.tcp.address=127.0.0.1:0")
 	timeLimit := 5 * time.Second
 	matches, err := startAndWaitFor(cmd, timeLimit, regexp.MustCompile("Mount table .+ endpoint: (.+)\n"))
 	if err != nil {

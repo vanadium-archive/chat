@@ -1,14 +1,24 @@
 SHELL := /bin/bash -euo pipefail
-PATH := node_modules/.bin:clients/shell/bin:$(PATH)
+export PATH := node_modules/.bin:clients/shell/bin:$(PATH)
 export GOPATH := $(shell pwd)/clients/shell:$(GOPATH)
 export VDLPATH := $(GOPATH)
 
-# TODO(nlacasse): Use the code in $VANADIUM_ROOT when testing so we can catch
-# errors caused by dependencies changing.  It would be nice to maintain a
-# "standalone" build process like we have now too.
+# If VANADIUM_ROOT is defined, we should compile/build our clients against the
+# code there.  This allows us to test our clients againts the current code, and
+# simplifies debugging.  In order to make this work, we must change our PATHs
+# and go compiler depending on whether VANADIUM_ROOT is set.
+ifdef VANADIUM_ROOT
+	# Use "v23" go compiler.
+	GO := v23 go
+	# v23 puts binaries in $(VANADIUM_ROOT)/release/go/bin, so add that to the PATH.
+	export PATH := $(VANADIUM_ROOT)/release/go/bin:$(PATH)
+else
+	# Use standard go compiler.
+	GO := go
+	# The vdl tool needs either VANADIUM_ROOT or VDLROOT, so set VDLROOT.
+	export VDLROOT := $(shell pwd)/clients/shell/src/v.io/core/veyron2/vdl/vdlroot
+endif
 
-# This is needed for web tests, to build the Vanadium extension.
-VANADIUM_JS:=$(VANADIUM_ROOT)/release/javascript/core
 
 # This target causes any target files to be deleted if the target task fails.
 # This is especially useful for browserify, which creates files even if it
@@ -61,26 +71,36 @@ all: build-shell build-web
 node_modules: package.json
 	npm prune
 	npm install
+# If VANADIUM_ROOT is defined, link veyron.js from it.
+ifdef VANADIUM_ROOT
+	rm -rf ./node_modules/veyron
+	cd "$(VANADIUM_ROOT)/release/javascript/core" && npm link
+	npm link veyron
+endif
 	touch node_modules
 
 # TODO(sadovsky): Make it so we only run "go install" when binaries are out of
 # date.
 veyron-binaries: clients/shell/src/v.io
-	go install \
+	$(GO) install \
 	v.io/core/veyron2/vdl/vdl \
-	v.io/core/veyron/tools/{mounttable,principal,servicerunner,vrpc}
+	v.io/core/veyron/services/mounttable/mounttabled \
+	v.io/core/veyron/tools/servicerunner
 
 clients/shell/src/github.com/fatih/color:
-	go get github.com/fatih/color
+	$(GO) get github.com/fatih/color
 
 clients/shell/src/github.com/kr/text:
-	go get github.com/kr/text
+	$(GO) get github.com/kr/text
 
 clients/shell/src/github.com/nlacasse/gocui:
-	go get github.com/nlacasse/gocui
+	$(GO) get github.com/nlacasse/gocui
 
 clients/shell/src/v.io:
-	go get v.io/core/...
+# Only go get v.io go repo if VANADIUM_ROOT is not defined.
+ifndef VANADIUM_ROOT
+	$(GO) get v.io/core/...
+endif
 
 clients/shell/bin/client: veyron-binaries
 clients/shell/bin/client: clients/shell/src/github.com/fatih/color
@@ -88,7 +108,7 @@ clients/shell/bin/client: clients/shell/src/github.com/kr/text
 clients/shell/bin/client: clients/shell/src/github.com/nlacasse/gocui
 clients/shell/bin/client: $(shell find clients/shell/src -name "*.go")
 	vdl generate --lang=go service
-	go install client
+	$(GO) install client
 
 build-shell: veyron-binaries clients/shell/bin/client
 
@@ -129,7 +149,7 @@ serve-web: build-web-assets
 test: test-shell test-web
 
 test-shell: build-shell
-	go test client/...
+	$(GO) test client/...
 
 # We use the same test runner as veyron.js.  It handles starting and stopping
 # all required services (proxy, wspr, mounntabled), and runs tests in chrome
@@ -138,14 +158,20 @@ test-shell: build-shell
 # runner.js. We should restructure things so that runner.js is its own npm
 # package with its own deps.
 test-web: lint build-web
+ifndef VANADIUM_ROOT
+	@echo "The test-web make task requires VANADIUM_ROOT to be set."
+	exit 1
+else
 	node ./node_modules/veyron/test/integration/runner.js -- \
 	make test-web-runner
+endif
 
 # Note: runner.js sets the NAMESPACE_ROOT and PROXY_ADDR env vars for the
 # spawned test subprocess; we specify "make test-web-runner" as the test
 # command so that we can then reference these vars in the Vanadium extension
 # and our prova command.
 test-web-runner: APP_FRAME := "./build/index.html?mtname=$(NAMESPACE_ROOT)"
+test-web-runner: VANADIUM_JS := $(VANADIUM_ROOT)/release/javascript/core
 test-web-runner: BROWSER_OPTS := --options="--load-extension=$(VANADIUM_JS)/extension/build-test/,--ignore-certificate-errors,--enable-logging=stderr" $(BROWSER_OPTS)
 test-web-runner:
 	@$(RM) -fr $(VANADIUM_JS)/extension/build-test
