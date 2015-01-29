@@ -17,7 +17,9 @@ ifdef VANADIUM_ROOT
 	# Use "v23" go compiler wrapper.
 	GO := v23 go
 	# v23 puts binaries in $(VANADIUM_ROOT)/release/go/bin, so add that to the PATH.
-	export PATH := $(VANADIUM_ROOT)/release/go/bin:$(PATH)
+	PATH := $(VANADIUM_ROOT)/release/go/bin:$(PATH)
+	# Add location of node and npm from environment repo.
+	export PATH := $(VANADIUM_ROOT)/environment/cout/node/bin:$(PATH)
 else
 	# Use standard go compiler.
 	GO := go
