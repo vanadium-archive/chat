@@ -29,8 +29,6 @@
     "run-parallel": "^1.0.0",
     "st": "^0.5.2",
     "stream-to-array": "^2.0.2",
-    "veyron": "git+ssh://git@github.com:veyron/veyron.js.git",
-    "vom": "git+ssh://git@github.com:veyron/vom.js.git",
     "which": "~1.0.5"
   },
   "private": true

@@ -79,11 +79,14 @@ all: build-shell build-web
 node_modules: package.json
 	npm prune
 	npm install
-# If VANADIUM_ROOT is defined, link veyron.js from it.
 ifdef VANADIUM_ROOT
+	# If VANADIUM_ROOT is defined, link veyron.js from it.
 	rm -rf ./node_modules/veyron
 	cd "$(VANADIUM_ROOT)/release/javascript/core" && npm link
 	npm link veyron
+else
+	# If VANADIUM_ROOT is not defined, install veyron.js from github.
+	npm install git+ssh://git@github.com:veyron/veyron.js.git
 endif
 	touch node_modules
 
