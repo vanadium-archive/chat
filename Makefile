@@ -116,15 +116,15 @@ ifndef VANADIUM_ROOT
 	$(GO) get v.io/core/...
 endif
 
-clients/shell/bin/client: veyron-binaries
-clients/shell/bin/client: clients/shell/src/github.com/fatih/color
-clients/shell/bin/client: clients/shell/src/github.com/kr/text
-clients/shell/bin/client: clients/shell/src/github.com/nlacasse/gocui
-clients/shell/bin/client: $(shell find clients/shell/src -name "*.go")
-	vdl generate --lang=go service
-	$(GO) install client
+clients/shell/bin/chat: veyron-binaries
+clients/shell/bin/chat: clients/shell/src/github.com/fatih/color
+clients/shell/bin/chat: clients/shell/src/github.com/kr/text
+clients/shell/bin/chat: clients/shell/src/github.com/nlacasse/gocui
+clients/shell/bin/chat: $(shell find clients/shell/src -name "*.go")
+	vdl generate --lang=go chat/vdl
+	$(GO) install chat
 
-build-shell: veyron-binaries clients/shell/bin/client
+build-shell: veyron-binaries clients/shell/bin/chat
 
 mkdir-build:
 	@mkdir -p build
@@ -163,7 +163,7 @@ serve-web: build-web-assets
 test: test-shell test-web
 
 test-shell: build-shell
-	$(GO) test client/...
+	$(GO) test chat/...
 
 # We use the same test runner as veyron.js.  It handles starting and stopping
 # all required services (proxy, wspr, mounntabled), and runs tests in chrome

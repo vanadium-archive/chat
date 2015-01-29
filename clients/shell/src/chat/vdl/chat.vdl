@@ -1,4 +1,4 @@
-package service
+package vdl
 
 type Chat interface {
 	// SendMessage sends a message to a user.

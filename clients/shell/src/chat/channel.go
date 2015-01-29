@@ -37,8 +37,7 @@ import (
 	"v.io/core/veyron2/security"
 	"v.io/core/veyron2/vlog"
 
-	// TODO(sadovsky): This should be under "github.com/veyron/chat" or somesuch.
-	"service"
+	"chat/vdl"
 )
 
 // Sender represents the blessings of the sender of the message.
@@ -60,7 +59,7 @@ type chatServerMethods struct {
 	messages chan<- message
 }
 
-var _ service.ChatServerMethods = (*chatServerMethods)(nil)
+var _ vdl.ChatServerMethods = (*chatServerMethods)(nil)
 
 func newChatServerMethods(messages chan<- message) *chatServerMethods {
 	return &chatServerMethods{
@@ -163,7 +162,7 @@ func (cr *channel) join() error {
 	if _, err := cr.server.Listen(veyron2.GetListenSpec(cr.ctx)); err != nil {
 		return err
 	}
-	serverChat := service.ChatServer(cr.chatServerMethods)
+	serverChat := vdl.ChatServer(cr.chatServerMethods)
 	path := naming.Join(cr.path, cr.UserName())
 	if err := cr.server.Serve(path, serverChat, openAuthorizer{}); err != nil {
 		return err
@@ -240,7 +239,7 @@ func (cr *channel) sendMessageTo(member *member, messageText string) {
 	ctx, cancel := context.WithTimeout(cr.ctx, 5*time.Second)
 	defer cancel()
 
-	s := service.ChatClient(member.Path)
+	s := vdl.ChatClient(member.Path)
 
 	if err := s.SendMessage(ctx, messageText); err != nil {
 		return // member has disconnected.
