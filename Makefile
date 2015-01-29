@@ -3,12 +3,18 @@ export PATH := node_modules/.bin:clients/shell/bin:$(PATH)
 export GOPATH := $(shell pwd)/clients/shell:$(GOPATH)
 export VDLPATH := $(GOPATH)
 
+# Don't use VANADIUM_ROOT if NO_VANADIUM_ROOT is set.
+# This is equivalent to "VANADIUM_ROOT= make ..."
+ifdef NO_VANADIUM_ROOT
+  VANADIUM_ROOT :=
+endif
+
 # If VANADIUM_ROOT is defined, we should compile/build our clients against the
 # code there.  This allows us to test our clients againts the current code, and
 # simplifies debugging.  In order to make this work, we must change our PATHs
 # and go compiler depending on whether VANADIUM_ROOT is set.
 ifdef VANADIUM_ROOT
-	# Use "v23" go compiler.
+	# Use "v23" go compiler wrapper.
 	GO := v23 go
 	# v23 puts binaries in $(VANADIUM_ROOT)/release/go/bin, so add that to the PATH.
 	export PATH := $(VANADIUM_ROOT)/release/go/bin:$(PATH)
@@ -159,6 +165,13 @@ test-shell: build-shell
 # package with its own deps.
 test-web: lint build-web
 ifndef VANADIUM_ROOT
+	# The js tests needs the extension built into a folder so that it can be
+	# loaded with chrome on startup.  The extension build process currently
+	# depends on v23, the Vanadium "web" profile, and VANADIUM_ROOT.
+	#
+	# TODO(nlacasse): Either make the extension build process have less
+	# dependencies, or distribute a version of the extension that can be
+	# unpacked into a directory and used in tests by other projects like chat.
 	@echo "The test-web make task requires VANADIUM_ROOT to be set."
 	exit 1
 else
