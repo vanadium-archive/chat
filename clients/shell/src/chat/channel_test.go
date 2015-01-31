@@ -10,14 +10,15 @@ import (
 	"testing"
 	"time"
 
-	"v.io/core/veyron2"
+	"v.io/core/veyron/lib/testutil"
+
 	"v.io/core/veyron2/context"
 )
 
 // Creates a new context and a new mounttable. Returns the context, mounttable
 // endpoint, and a teardown function.
 func setup(t *testing.T) (*context.T, string, func(*testing.T)) {
-	ctx, shutdown := veyron2.Init()
+	ctx, shutdown := testutil.InitForTest()
 
 	mtProc, endpoint, err := startMounttabled()
 	if err != nil {
