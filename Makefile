@@ -80,16 +80,13 @@ node_modules: package.json
 	npm prune
 	npm install
 ifdef VANADIUM_ROOT
-	# If VANADIUM_ROOT is defined, link vom.js and veyron.js from it.
+	# If VANADIUM_ROOT is defined, link veyron.js from it.
 	rm -rf ./node_modules/veyron
 	cd "$(VANADIUM_ROOT)/release/javascript/core" && npm link
 	npm link veyron
-	cd "$(VANADIUM_ROOT)/release/javascript/vom" && npm link
-	npm link vom
 else
-	# If VANADIUM_ROOT is not defined, install veyron.js and vom.js from github.
+	# If VANADIUM_ROOT is not defined, install veyron.js from github.
 	npm install git+ssh://git@github.com:veyron/veyron.js.git
-	npm install git+ssh://git@github.com:veyron/vom.js.git
 endif
 	touch node_modules
 
