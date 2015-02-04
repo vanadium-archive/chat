@@ -120,7 +120,7 @@ func TestMembers(t *testing.T) {
 	}
 }
 
-func testBroadcastMessage(t *testing.T) {
+func TestBroadcastMessage(t *testing.T) {
 	ctx, mounttable, teardown := setup(t)
 	defer teardown(t)
 
@@ -140,6 +140,11 @@ func testBroadcastMessage(t *testing.T) {
 	message := "Hello Vanadium world!"
 
 	go func() {
+		// Call getMembers(), which will set channel.members, used by
+		// channel.broadcastMessage().
+		if _, err := channel.getMembers(); err != nil {
+			t.Fatalf("channel.getMembers() failed: %v", err)
+		}
 		if err := channel.broadcastMessage(message); err != nil {
 			t.Fatalf("channel.broadcastMessage(%v) failed: %v", message, err)
 		}
@@ -167,7 +172,7 @@ func testBroadcastMessage(t *testing.T) {
 // status text.  Consider making a go library that knows how to start common
 // services and return relavent bits of information.
 func startMounttabled() (*os.Process, string, error) {
-	cmd := exec.Command("mounttabled", "--veyron.tcp.address=127.0.0.1:0")
+	cmd := exec.Command("mounttabled", "--veyron.tcp.address=localhost:0")
 	timeLimit := 5 * time.Second
 	matches, err := startAndWaitFor(cmd, timeLimit, regexp.MustCompile("Mount table .+ endpoint: (.+)\n"))
 	if err != nil {

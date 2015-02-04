@@ -160,7 +160,11 @@ serve-web: build-web-assets
 test: test-shell test-web
 
 test-shell: build-shell
-	$(GO) test chat/...
+	# We must pass --veyron.tcp.address=localhost:0, otherwise the chat server
+	# will listen on the external IP address of the gce instance, and our
+	# firewall rules prevent connections on unknown ports unless coming from
+	# localhost.
+	$(GO) test chat/... --veyron.tcp.address=localhost:0
 
 # We use the same test runner as veyron.js.  It handles starting and stopping
 # all required services (proxy, wspr, mounntabled), and runs tests in chrome

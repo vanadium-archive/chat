@@ -23,10 +23,11 @@ package main
 //  cr.leave()
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"math/rand"
 	"sort"
-	"strings"
 	"time"
 
 	_ "v.io/core/veyron/profiles/roaming"
@@ -34,11 +35,16 @@ import (
 	"v.io/core/veyron2/context"
 	"v.io/core/veyron2/ipc"
 	"v.io/core/veyron2/naming"
+	"v.io/core/veyron2/options"
 	"v.io/core/veyron2/security"
 	"v.io/core/veyron2/vlog"
 
 	"chat/vdl"
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 // Sender represents the blessings of the sender of the message.
 type Sender []string
@@ -81,7 +87,12 @@ func (cs *chatServerMethods) SendMessage(ctx ipc.ServerContext, IncomingMessage 
 
 // member is a member of the channel.
 type member struct {
+	// Blessings is the remote blessings of the member.  There could
+	// potentially be multiple.
+	Blessings []string
+	// Name is the name we will display for this member.
 	Name string
+	// Path is the path in the mounttable where the member is mounted.
 	Path string
 }
 
@@ -100,38 +111,37 @@ type channel struct {
 	path   string
 	ctx    *context.T
 	server ipc.Server
-	// Random number to allow different instances of clients, running
-	// with the same blessings (e.g., id-provider/foo@bar.com/laptop)
-	// to mount themselves under different names.
-	instance int
 	// Channel that emits incoming messages.
 	messages chan message
+	// Cached list of channel members.
+	members []*member
 }
 
 func newChannel(ctx *context.T, mounttable, path string) (*channel, error) {
 	// Set the namespace root to the mounttable passed on the command line.
-	veyron2.SetNewNamespace(ctx, mounttable)
+	newCtx, _, err := veyron2.SetNewNamespace(ctx, mounttable)
+	if err != nil {
+		return nil, err
+	}
 
 	// Turn off logging to stderr.
 	vlog.Log.ConfigureLogger(
 		vlog.LogToStderr(false),
 		vlog.AlsoLogToStderr(false))
 
-	s, err := veyron2.NewServer(ctx)
+	s, err := veyron2.NewServer(newCtx)
 	if err != nil {
 		return nil, err
 	}
 
-	rand.Seed(time.Now().UnixNano())
 	messages := make(chan message)
 
 	return &channel{
 		chatServerMethods: newChatServerMethods(messages),
 		messages:          messages,
 		path:              path,
-		ctx:               ctx,
+		ctx:               newCtx,
 		server:            s,
-		instance:          rand.Intn(9999),
 	}, nil
 }
 
@@ -154,7 +164,7 @@ func (cr *channel) UserName() string {
 	if sn := shortName(userName); sn != "" {
 		userName = sn
 	}
-	return fmt.Sprintf("%s-%04d", userName, cr.instance)
+	return userName
 }
 
 // join starts a chat server and mounts it in the channel path.
@@ -163,7 +173,15 @@ func (cr *channel) join() error {
 		return err
 	}
 	serverChat := vdl.ChatServer(cr.chatServerMethods)
-	path := naming.Join(cr.path, cr.UserName())
+
+	// Mount under a random name, the hash of our default blessing and a random int.
+	hash := sha256.Sum256([]byte(fmt.Sprintf("%s-%d", cr.UserName(), rand.Int())))
+	mountName := base64.URLEncoding.EncodeToString(hash[:])
+
+	// TODO(nlacasse): Lock the name so others can't mount on the same
+	// name.  Also handle the case where this mount point is already
+	// mounted and locked by picking a new random name.
+	path := naming.Join(cr.path, mountName)
 	if err := cr.server.Serve(path, serverChat, openAuthorizer{}); err != nil {
 		return err
 	}
@@ -175,61 +193,96 @@ func (cr *channel) leave() error {
 	return cr.server.Stop()
 }
 
-func (cr *channel) newMember(path string) (*member, error) {
-	// The last part of the path is the name.
-	name := path[strings.LastIndex(path, "/")+1 : len(path)]
-
-	member := member{
-		Name: name,
-		Path: path,
+func (cr *channel) newMember(blessings []string, path string) *member {
+	name := "unknown"
+	if len(blessings) > 0 {
+		// Arbitrarily choose the first blessing as the display name.
+		name = shortName(blessings[0])
 	}
-	return &member, nil
+	return &member{
+		Name:      name,
+		Blessings: blessings,
+		Path:      path,
+	}
 }
 
 // getMembers gets a list of members in the channel.
-// TODO(nlacasse): Figure out how to get the Blessings (and hence the emails) of
-// the members. Right now we just trust that they mounted under their actual
-// email address.
 func (cr *channel) getMembers() ([]*member, error) {
 	ctx, cancel := context.WithTimeout(cr.ctx, 5*time.Second)
 	defer cancel()
 
+	// Glob on the channel path for mounted members.
 	globPath := cr.path + "/*"
-
-	memberChan, err := veyron2.GetNamespace(ctx).Glob(ctx, globPath)
+	globChan, err := veyron2.GetNamespace(ctx).Glob(ctx, globPath)
 	if err != nil {
 		return nil, err
 	}
 
-	// Read the member names from the channel.
-	members := []*member{}
-	for mountEntry := range memberChan {
+	// Get the members' paths from the mount entries, and construct member objects.
+	entryCount := 0
+	var memberChan = make(chan *member)
+	for mountEntry := range globChan {
 		if mountEntry.Error != nil {
 			return nil, fmt.Errorf("Error while getting member: %v\n", mountEntry.Error)
 		} else {
-			if member, err := cr.newMember(mountEntry.Name); err != nil {
-				// Member has disconnected.
-			} else {
-				members = append(members, member)
-			}
+			entryCount++
+			// Get the remote blessings and construct the member in a goroutine.
+			go func(path string) {
+				names, err := cr.getRemoteBlessings(path)
+				if err != nil {
+					// Member has disconnected or is not reachable.
+					memberChan <- nil
+				} else {
+					memberChan <- cr.newMember(names, path)
+				}
+			}(mountEntry.Name)
 		}
 	}
+
+	// Collect the members off the memberChan.
+	members := []*member{}
+	for i := 0; i < entryCount; i++ {
+		member := <-memberChan
+		if member != nil {
+			members = append(members, member)
+		}
+	}
+
 	sort.Sort(byName(members))
+
+	cr.members = members
 	return members, nil
+}
+
+// getRemoteBlessings makes a request to a client and returns the names of
+// the client's blessings.
+func (cr *channel) getRemoteBlessings(path string) ([]string, error) {
+	ctx, cancel := context.WithTimeout(cr.ctx, 5*time.Second)
+	defer cancel()
+
+	// NOTE(nlacasse): Why do I have to use ctx twice here?  Once in
+	// GetClient and again in StartCall.
+	client := veyron2.GetClient(ctx)
+
+	// It doesn't matter what method we try to call, since we are only
+	// looking for the RemoteBlessings on the call object.  We call
+	// Signature because we know it will exist, and not clutter up the logs
+	// with "ipc unknown method" errors.
+	call, err := client.StartCall(ctx, path, ipc.ReservedSignature, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	blessings, _ := call.RemoteBlessings()
+
+	return blessings, nil
 }
 
 // broadcastMessage sends a message to all members in the channel.
 func (cr *channel) broadcastMessage(messageText string) error {
-	members, err := cr.getMembers()
-	if err != nil {
-		return err
-	}
-
-	for _, member := range members {
+	for _, member := range cr.members {
 		// TODO(nlacasse): Sending messages async means they might get sent out of
 		// order. Consider either sending them sync or maintain a queue.
-		// TODO(sadovsky): We should bind to (and call SendMessage against) the
-		// mounttable-based name, not the actual member endpoint.
 		go cr.sendMessageTo(member, messageText)
 	}
 	return nil
@@ -241,7 +294,13 @@ func (cr *channel) sendMessageTo(member *member, messageText string) {
 
 	s := vdl.ChatClient(member.Path)
 
-	if err := s.SendMessage(ctx, messageText); err != nil {
+	// This AllowedServersPolicy option requires that the server matches
+	// the blessings we got when we globbed it.
+	opt := options.AllowedServersPolicy{security.BlessingPattern(member.Blessings[0])}
+
+	// TODO(nlacasse): Make sure the member's remote blessings agree with
+	// the blessings we get from the server.
+	if err := s.SendMessage(ctx, messageText, opt); err != nil {
 		return // member has disconnected.
 	}
 }

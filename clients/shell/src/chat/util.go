@@ -37,11 +37,13 @@ func shortName(fullName string) string {
 	// address: presence of an "@" character.
 	parts := strings.Split(string(fullName), security.ChainSeparator)
 	for _, p := range parts {
-		if strings.Index(p, "@") > 0 {
+		if strings.Count(p, "@") == 1 {
 			return p
 		}
 	}
-	return ""
+
+	// If no email address is found, use the fullName. Useful for testing.
+	return fullName
 }
 
 func firstShortName(blessings []string) string {
