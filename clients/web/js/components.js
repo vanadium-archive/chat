@@ -5,7 +5,6 @@ var React = require('react');
 
 var Channel = require('./channel');
 var h = require('./react_h');
-var util = require('./util');
 
 // Navigation bar.
 var NavBar = React.createClass({
@@ -111,18 +110,13 @@ var Page = React.createClass({
     var rt = nextProps.rt;
     if (!rt) return;
 
-    // TODO(sadovsky): Somehow prevent name collisions. Or, treat all
-    // connections from the same identity as the same user (see TODO in
-    // util.js).
-    var userName = util.shortName(rt.accountName) + '-' + makeRandomID(4);
-
     var chan = null;
     // Note: Even if we somehow fail to call chan.leave(), our server will get
     // removed from the mounttable after one minute (due to ttl).
     window.addEventListener('beforeunload', function() {
       if (chan) chan.leave();
     });
-    chan = new Channel(rt, 'public', userName);
+    chan = new Channel(rt, 'public');
     chan.on('members', function(members) {
       that.setState({members: members});
     }).on('message', function(message) {
@@ -164,10 +158,6 @@ var Page = React.createClass({
     ]);
   }
 });
-
-function makeRandomID(len) {
-  return ('' + Math.random()).substr(2, len);
-}
 
 ////////////////////////////////////////
 // Exports

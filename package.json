@@ -28,7 +28,6 @@
     "rework-vars": "^3.1.1",
     "run-parallel": "^1.0.0",
     "st": "^0.5.2",
-    "stream-to-array": "^2.0.2",
     "which": "~1.0.5"
   },
   "private": true

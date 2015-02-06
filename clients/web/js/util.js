@@ -1,15 +1,12 @@
+var crypto = require('crypto');
+
 module.exports = {
   shortName: shortName,
-  firstShortName: firstShortName
+  firstShortName: firstShortName,
+  randomHex: randomHex
 };
 
 // Note, shortName and firstShortName are duplicated between JS and Go.
-
-// TODO(sadovsky): Fix mismatch between names on received messages and names
-// mounted in the mount table. Perhaps our unit of operation should be blessing
-// rather than client instance, and multiple client instances using the same
-// blessing should be treated as multiple connections for the same user (similar
-// to Hangouts with phone and desktop).
 
 function shortName(fullName) {
   // Split into components and see if any is an email address. A very
@@ -26,7 +23,7 @@ function shortName(fullName) {
 }
 
 function firstShortName(blessings) {
-  if (blessings.length === 0) {
+  if (!blessings || blessings.length === 0) {
     return 'unknown';
   }
   for (var i = 0; i < blessings.length; i++) {
@@ -34,4 +31,8 @@ function firstShortName(blessings) {
     if (sn) return sn;
   }
   return blessings[0];
+}
+
+function randomHex(len) {
+  return crypto.randomBytes(Math.ceil(len/2)).toString('hex').slice(0, len);
 }
