@@ -134,7 +134,8 @@ build/bundle.css: clients/web/css/index.css $(shell find clients/web/css -name "
 # command to succeed. (Run "ulimit -S -a" and "ulimit -H -a" to see all soft and
 # hard limits respectively.)
 # Also see: https://github.com/substack/node-browserify/issues/899
-build/bundle.js: clients/web/js/index.js $(shell find clients/web/js -name "*.js") mkdir-build node_modules
+build/bundle.js: clients/web/js/index.js $(shell find clients/web/js -name "*.js") mkdir-build node_modules veyron-binaries
+	vdl generate --lang=javascript --js_out_dir=clients/web/js chat/vdl
 #browserify $< -d -p [minifyify --map $(@F).map --output $@.map] -o $@
 	browserify $< -d -o $@
 

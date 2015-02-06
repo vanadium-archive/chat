@@ -124,10 +124,10 @@ func newChannel(ctx *context.T, mounttable, path string) (*channel, error) {
 		return nil, err
 	}
 
-	// Turn off logging to stderr.
-	vlog.Log.ConfigureLogger(
-		vlog.LogToStderr(false),
-		vlog.AlsoLogToStderr(false))
+	// Turn off logging, because it messes with the UI.
+	// TODO(nlacasse): It would be nice if we could only do this if the
+	// user did not pass in a value for -v flag.
+	vlog.Log.ConfigureLogger(vlog.Level(-1))
 
 	s, err := veyron2.NewServer(newCtx)
 	if err != nil {

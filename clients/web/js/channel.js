@@ -2,9 +2,11 @@ module.exports = Channel;
 
 var _ = require('lodash');
 var EventEmitter = require('events').EventEmitter;
+var inherits = require('util').inherits;
 var path = require('path');
 
 var noop = require('./noop');
+var ServiceVdl = require('./chat/vdl/vdl');
 var util = require('./util');
 
 function Member(blessings, path) {
@@ -36,14 +38,27 @@ function Channel(rt, channelName, cb) {
 
   var that = this;
 
-  var service = {
-    sendMessage: function(ctx, text) {
-      that.ee_.emit('message', {
-        sender: util.firstShortName(ctx.remoteBlessingStrings),
-        text: text,
-        timestamp: new Date()
-      });
-    }
+  // Create our service implementation, which defines a single method:
+  // "SendMessage".  We inherit from ServiceVdl.Chat which causes our defined
+  // VDL types to be used when serializing values on the wire.  This is
+  // necessary for the web client to be able to communicate with the shell
+  // client.
+  var Service = function() {
+    ServiceVdl.Chat.call(this);
+  };
+  inherits(Service, ServiceVdl.Chat);
+
+  // TODO(nlacasse): It's strange that I have to define "SendMessage" with a
+  // capital "S", when I implement my RPC handler, but I have to call
+  // "sendMessage" with a lower-case "s" when I actually make an RPC call.  This
+  // should be more consistent.
+  // See https://github.com/veyron/release-issues/issues/996
+  Service.prototype.SendMessage = function(ctx, text) {
+    that.ee_.emit('message', {
+      sender: util.firstShortName(ctx.remoteBlessingStrings),
+      text: text,
+      timestamp: new Date()
+    });
   };
 
   // Choose a random name to mount under.
@@ -57,7 +72,7 @@ function Channel(rt, channelName, cb) {
   var openAuthorizer = function(){ return null; };
   var options = {authorizer: openAuthorizer};
   // Note, serve() performs the mount() for us.
-  this.server_.serve(serviceName, service, options, function(err) {
+  this.server_.serve(serviceName, new Service(), options, function(err) {
     if (err) return cb(err);
     // Use nextTick() for the first updateMembers_() call to give clients a
     // chance to set up their event listeners.
