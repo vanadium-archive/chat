@@ -21,7 +21,7 @@ function memberNames(members) {
 }
 
 // Joins the specified channel, creating it if needed.
-// Emits 'members' and 'message' events.
+// Emits 'members', 'message', and 'ready' events.
 function Channel(rt, channelName, cb) {
   cb = cb || noop;
 
@@ -33,6 +33,7 @@ function Channel(rt, channelName, cb) {
   this.server_ = rt.newServer();
 
   this.ee_ = new EventEmitter();
+  this.ready_ = false;
   this.members_ = [];
   this.intervalID_ = null;  // initialized below
 
@@ -163,6 +164,11 @@ Channel.prototype.updateMembers_ = function() {
         if (!_.isEqual(oldMemberNames, newMemberNames)) {
           that.ee_.emit('members', newMemberNames);
         }
+
+        if (!that.ready_) {
+          that.ready_ = true;
+          that.ee_.emit('ready');
+        }
       }
     });
   });
@@ -170,6 +176,11 @@ Channel.prototype.updateMembers_ = function() {
 
 Channel.prototype.addEventListener = function(event, listener) {
   this.ee_.addListener(event, listener);
+  return this;
+};
+
+Channel.prototype.once = function(event, listener) {
+  this.ee_.once(event, listener);
   return this;
 };
 

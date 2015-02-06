@@ -15,6 +15,9 @@ var mtname = u.query.mtname || '/proxy.envyor.com:8101';
 var page = React.renderComponent(
   new Page({rt: null}), document.querySelector('#c'));
 
+// Export page on the window for testing/debugging.
+window.page = page;
+
 veyron.init(veyronConfig, function(err, rt) {
   if (err) return displayError(err);
 
