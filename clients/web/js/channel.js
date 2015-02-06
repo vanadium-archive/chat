@@ -50,7 +50,7 @@ function Channel(rt, channelName, cb) {
   inherits(Service, ServiceVdl.Chat);
 
   // TODO(nlacasse): It's strange that I have to define "SendMessage" with a
-  // capital "S", when I implement my RPC handler, but I have to call
+  // capital "S" when I implement my RPC handler, but I have to call
   // "sendMessage" with a lower-case "s" when I actually make an RPC call.  This
   // should be more consistent.
   // See https://github.com/veyron/release-issues/issues/996
@@ -122,8 +122,16 @@ Channel.prototype.broadcastMessage = function(messageText, cb) {
 Channel.prototype.updateMembers_ = function() {
   var that = this;
 
+  // We glob on the channel name to find all the members in our channel.  The
+  // glob will return a stream of mount entries corresponding to the paths where
+  // channel members are mounted.  Then, we get the remote blessings from each
+  // member, and use those as the member names.
+
   var ctx = this.context_.withTimeout(1000);
   var pattern = path.join(this.channelName_, '*');
+
+  // Start the glob rpc.  This returns a promise with a "stream" property.
+  // Mount entries are emitted on the stream.
   var globRpc = this.namespace_.glob(ctx, pattern);
   var globStream = globRpc.stream;
   globRpc.catch(function(err) {
@@ -131,7 +139,6 @@ Channel.prototype.updateMembers_ = function() {
   });
 
   var newMembers = [];
-
   var doneGlobbing = false;
   var globResults = 0;
 
@@ -142,9 +149,17 @@ Channel.prototype.updateMembers_ = function() {
 
   globStream.on('end', done);
   globStream.on('error', done);
+
+  // Each time we get a mount entry, we request the remote blessings from the
+  // server and use those and the path to create a new Member object.
   globStream.on('data', function(mountEntry) {
     globResults++;
     var path = mountEntry.name;
+
+    // Request the remote blessings from the server.  This will make an RPC to
+    // the server and return the blessings that the remote server used to
+    // authenticate.  These blessings are cryptographically verified and can't
+    // be forged by the remote server.
     that.client_.remoteBlessings(ctx, path, function(err, blessings) {
       if (err) {
         // Member has disconnected or is not responding.  Add a null so we can
@@ -154,10 +169,15 @@ Channel.prototype.updateMembers_ = function() {
         newMembers.push(new Member(blessings, path));
       }
 
+      // If the glob stream is closed and we have constructed a Member object
+      // for each glob result, then we are finished.
       if (doneGlobbing && newMembers.length === globResults) {
         // Remove the nulls.
         newMembers = _.filter(newMembers);
 
+        // Get the member names for the old and new members and if they differ
+        // emit a "members" event which the UI will use to update the members
+        // list.
         var oldMemberNames = memberNames(that.members_);
         that.members_ = newMembers;
         var newMemberNames = memberNames(that.members_);
