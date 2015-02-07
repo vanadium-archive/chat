@@ -294,13 +294,14 @@ func (cr *channel) sendMessageTo(member *member, messageText string) {
 
 	s := vdl.ChatClient(member.Path)
 
-	// This AllowedServersPolicy option requires that the server matches
-	// the blessings we got when we globbed it.
-	opt := options.AllowedServersPolicy{security.BlessingPattern(member.Blessings[0])}
+	// The AllowedServersPolicy options require that the server matches the
+	// blessings we got when we globbed it.
+	opts := make([]ipc.CallOpt, len(member.Blessings))
+	for i, blessing := range member.Blessings {
+		opts[i] = options.AllowedServersPolicy{security.BlessingPattern(blessing)}
+	}
 
-	// TODO(nlacasse): Make sure the member's remote blessings agree with
-	// the blessings we get from the server.
-	if err := s.SendMessage(ctx, messageText, opt); err != nil {
+	if err := s.SendMessage(ctx, messageText, opts...); err != nil {
 		return // member has disconnected.
 	}
 }

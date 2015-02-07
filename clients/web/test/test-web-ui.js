@@ -21,9 +21,11 @@ function contains(elt, text) {
   return elt.innerHTML.indexOf(text) >= 0;
 }
 
+var chan;
+
 function onReady(cb) {
   domready(function listener() {
-    var chan = window.page.state.chan;
+    chan = window.page.state.chan;
 
     if (!chan) {
       // Channel has not loaded yet.  Wait 100ms.
@@ -80,11 +82,11 @@ test('Sending a message', function(t) {
 
     t.equal(input.value, '', 'input is empty after sending message');
 
-    // Give the message time to be received.
-    setTimeout(function() {
+    // Wait for the message to be received.
+    chan.once('message', function() {
       t.ok(contains(messages, newMessage),
            'message is contained in message list');
       t.end();
-    }, 1000);
+    });
   });
 });
