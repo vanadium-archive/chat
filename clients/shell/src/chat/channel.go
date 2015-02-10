@@ -221,10 +221,11 @@ func (cr *channel) getMembers() ([]*member, error) {
 	// Get the members' paths from the mount entries, and construct member objects.
 	entryCount := 0
 	var memberChan = make(chan *member)
-	for mountEntry := range globChan {
-		if mountEntry.Error != nil {
-			return nil, fmt.Errorf("Error while getting member: %v\n", mountEntry.Error)
-		} else {
+	for reply := range globChan {
+		switch v := reply.(type) {
+		case *naming.GlobError:
+			return nil, fmt.Errorf("Error while getting member: %v\n", v.Error)
+		case *naming.MountEntry:
 			entryCount++
 			// Get the remote blessings and construct the member in a goroutine.
 			go func(path string) {
@@ -235,7 +236,7 @@ func (cr *channel) getMembers() ([]*member, error) {
 				} else {
 					memberChan <- cr.newMember(names, path)
 				}
-			}(mountEntry.Name)
+			}(v.Name)
 		}
 	}
 
