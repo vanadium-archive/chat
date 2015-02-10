@@ -49,12 +49,7 @@ function Channel(rt, channelName, cb) {
   };
   inherits(Service, ServiceVdl.Chat);
 
-  // TODO(nlacasse): It's strange that I have to define "SendMessage" with a
-  // capital "S" when I implement my RPC handler, but I have to call
-  // "sendMessage" with a lower-case "s" when I actually make an RPC call.  This
-  // should be more consistent.
-  // See https://github.com/veyron/release-issues/issues/996
-  Service.prototype.SendMessage = function(ctx, text) {
+  Service.prototype.sendMessage = function(ctx, text) {
     that.ee_.emit('message', {
       sender: util.firstShortName(ctx.remoteBlessingStrings),
       text: text,
