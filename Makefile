@@ -74,7 +74,16 @@ PROVA_OPTS := --includeFilenameAsPackage $(TAP) $(QUIT) $(STOPONFAIL)
 
 BROWSER_OPTS := --browser --launch chrome $(HEADLESS) --log=./tmp/chrome.log
 
+.DEFAULT_GOAL := all
+
+.PHONY: all
 all: build-shell build-web
+
+.PHONY: deploy-staging
+deploy-staging: build-web-assets
+	git rev-parse --verify HEAD >> build/version
+	gcloud config set account vanadium-staging
+	gsutil -m rsync -d -r build gs://staging.chat.v.io
 
 node_modules: package.json
 	npm prune

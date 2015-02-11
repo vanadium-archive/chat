@@ -29,36 +29,28 @@ dependencies.
 In addition, you will need Node.js and npm to build the web client, and Chrome
 to run the client and the tests.
 
-## Deployment
+# Deploy
 
-TODO(nlacasse): Update this with the new deployment setup once we have one.
+If you do not have access to the vanadium-staging GCE account ping
+jasoncampbell@. Once you have access you will need to login to the account via
+the command line.
 
-The chat application consists of a set of static files hosted on the "v-www" GCE
-instance.  Deployment is as simple as pushing to a remote branch on the
-instance.  A git post-receive hook on the instance then builds the assets and
-makes them available over http.
+    gcloud auth login
 
-### First-time setup
+To deploy the site to https://staging.chat.v.io use the make target
+`deploy-staging`.
 
-You must add your public key to the git user's "authorized_keys".  This will
-allow you to push to the git repo on that machine.
+    make deploy-staging
 
-From the Developers Console on GCE, ssh into the v-www instance and run:
+This will sync the build directory to the private Google Storage bucket
+`gs://staging.chat.v.io` which gets automatically updated to the nginx
+front-end servers. Currently all static content is protected by OAuth. For
+more details on the deployment infrastructure see [this doc][deploy] and the
+[infrastructure] repository.
 
-    sudo su git
-    cat >> ~/.ssh/authorized_keys
+### Old Deploy
 
-Paste your ssh public key (commonly in ~/.ssh/id_rsa.pub), and then hit Enter
-followed by Ctrl-D.
-
-You may now log out from the instance.
-
-Next, from your local git repository, add a new remote reference to the staging
-GCE instance.
-
-    git remote add staging git@staging.v.io:chat.git
-
-### Deploy
+TODO(nlacasse): Update this with the new deployment setup
 
 Build and deploy the web assets to staging:
 
@@ -85,3 +77,6 @@ Run the release.sh script with the desired version.  Version must be of the
 form "v1.2.3".
 
     ./tools/release.sh <version>
+
+[deploy]: http://goo.gl/QfD4gl
+[infrastructure]: https://vanadium.googlesource.com/infrastructure/+/master/nginx/README.md
