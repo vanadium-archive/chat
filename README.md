@@ -48,35 +48,5 @@ front-end servers. Currently all static content is protected by OAuth. For
 more details on the deployment infrastructure see [this doc][deploy] and the
 [infrastructure] repository.
 
-### Old Deploy
-
-TODO(nlacasse): Update this with the new deployment setup
-
-Build and deploy the web assets to staging:
-
-    ./tools/deploy.sh web
-
-Build and deploy the shell client binaries to staging:
-
-    ./tools/deploy.sh shell
-
-Build and deploy everything to staging:
-
-    ./tools/deploy.sh all
-
-### Release
-
-Cutting a release does a deploy, and if the deploy is successful, tags the
-current commit with the version and pushes it to the veyron remote.
-
-Make sure you have added the veyron remote.
-
-    git remote add veyron git@github.com:veyron/chat.git
-
-Run the release.sh script with the desired version.  Version must be of the
-form "v1.2.3".
-
-    ./tools/release.sh <version>
-
 [deploy]: http://goo.gl/QfD4gl
 [infrastructure]: https://vanadium.googlesource.com/infrastructure/+/master/nginx/README.md
