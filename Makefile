@@ -82,7 +82,7 @@ all: build-shell build-web
 .PHONY: deploy-staging
 deploy-staging: build-web-assets
 	git rev-parse --verify HEAD >> build/version
-	gcloud config set account vanadium-staging
+	gcloud config set project vanadium-staging
 	gsutil -m rsync -d -r build gs://staging.chat.v.io
 
 node_modules: package.json
