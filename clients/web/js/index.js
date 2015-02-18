@@ -21,6 +21,8 @@ window.page = page;
 veyron.init(veyronConfig, function(err, rt) {
   if (err) return displayError(err);
 
+  rt.on('error', displayError);
+
   rt.namespace().setRoots(mtname, function(err) {
     if (err) return displayError(err);
     page.setProps({rt: rt});
