@@ -13,7 +13,7 @@ Please file bugs and feature requests in our [issue tracker][issue-tracker].
 1. Install the Vanadium Chrome Extension:
   <https://chrome.google.com/webstore/detail/vanadium-extension/jcaelnibllfoobpedofhlaobfcoknpap>
 
-2. Visit the chat webpage: <https://staging.v.io/chat>
+2. Visit the chat webpage: <https://staging.chat.v.io/>
 
 <a name="client-shell"></a>
 ## Running the shell client
