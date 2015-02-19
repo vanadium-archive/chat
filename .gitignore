@@ -1,4 +1,3 @@
-*.vdl.go
 build
 clients/shell/bin
 clients/shell/pkg
@@ -6,7 +5,6 @@ clients/shell/src/code.google.com
 clients/shell/src/github.com
 clients/shell/src/golang.org
 clients/shell/src/v.io
-clients/web/js/chat/vdl/vdl.js
 node_modules
 tmp
 /.v23
