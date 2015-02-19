@@ -6,7 +6,7 @@ var inherits = require('util').inherits;
 var path = require('path');
 
 var noop = require('./noop');
-var ServiceVdl = require('./chat/vdl/vdl');
+var ServiceVdl = require('./chat/vdl');
 var util = require('./util');
 
 function Member(blessings, path) {
