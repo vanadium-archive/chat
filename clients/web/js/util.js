@@ -1,5 +1,3 @@
-var crypto = require('crypto');
-
 module.exports = {
   shortName: shortName,
   firstShortName: firstShortName,
@@ -33,6 +31,13 @@ function firstShortName(blessings) {
   return blessings[0];
 }
 
+function randomBytes(len) {
+  len = len || 1;
+  var array = new Int8Array(len);
+  window.crypto.getRandomValues(array);
+  return new Buffer(array);
+}
+
 function randomHex(len) {
-  return crypto.randomBytes(Math.ceil(len/2)).toString('hex').slice(0, len);
+  return randomBytes(Math.ceil(len/2)).toString('hex').substr(0, len);
 }
