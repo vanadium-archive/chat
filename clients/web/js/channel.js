@@ -2,7 +2,7 @@ module.exports = Channel;
 
 var _ = require('lodash');
 var EventEmitter = require('events').EventEmitter;
-var inherits = require('util').inherits;
+var inherits = require('inherits');
 var path = require('path');
 
 var noop = require('./noop');

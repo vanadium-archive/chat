@@ -206,7 +206,7 @@ test-web-runner: APP_FRAME := "./build/index.html?mtname=$(NAMESPACE_ROOT)"
 test-web-runner: VANADIUM_JS := $(VANADIUM_ROOT)/release/javascript/core
 test-web-runner: BROWSER_OPTS := --options="--load-extension=$(VANADIUM_JS)/extension/build-test/,--ignore-certificate-errors,--enable-logging=stderr" $(BROWSER_OPTS)
 test-web-runner:
-	@$(RM) -fr $(VANADIUM_JS)/extension/build-test
+	$(MAKE) -C $(VANADIUM_JS)/extension clean
 	$(MAKE) -C $(VANADIUM_JS)/extension build-test
 	prova clients/web/test/test-*.js -f $(APP_FRAME) $(PROVA_OPTS) $(BROWSER_OPTS) $(BROWSER_OUTPUT_LOCAL)
 
