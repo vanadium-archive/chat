@@ -31,13 +31,13 @@ import (
 	"time"
 
 	_ "v.io/core/veyron/profiles/roaming"
-	"v.io/core/veyron2"
-	"v.io/core/veyron2/context"
-	"v.io/core/veyron2/ipc"
-	"v.io/core/veyron2/naming"
-	"v.io/core/veyron2/options"
-	"v.io/core/veyron2/security"
-	"v.io/core/veyron2/vlog"
+	"v.io/v23"
+	"v.io/v23/context"
+	"v.io/v23/ipc"
+	"v.io/v23/naming"
+	"v.io/v23/options"
+	"v.io/v23/security"
+	"v.io/v23/vlog"
 
 	"chat/vdl"
 )
@@ -120,7 +120,7 @@ type channel struct {
 
 func newChannel(ctx *context.T, mounttable, path string) (*channel, error) {
 	// Set the namespace root to the mounttable passed on the command line.
-	newCtx, _, err := veyron2.SetNewNamespace(ctx, mounttable)
+	newCtx, _, err := v23.SetNewNamespace(ctx, mounttable)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func newChannel(ctx *context.T, mounttable, path string) (*channel, error) {
 	// user did not pass in a value for -v flag.
 	vlog.Log.ConfigureLogger(vlog.Level(-1))
 
-	s, err := veyron2.NewServer(newCtx)
+	s, err := v23.NewServer(newCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -159,9 +159,9 @@ func (o openAuthorizer) Authorize(_ security.Context) error {
 // UserName returns a short, human-friendly representation of the chat client.
 func (cr *channel) UserName() string {
 	// TODO(ashankar): It is wrong to assume that
-	// veyron2.GetPrincipal(ctx).BlessingStore().Default() returns a valid
+	// v23.GetPrincipal(ctx).BlessingStore().Default() returns a valid
 	// "sender". Think about the "who-am-I" API and use that here instead.
-	userName := fmt.Sprint(veyron2.GetPrincipal(cr.ctx).BlessingStore().Default())
+	userName := fmt.Sprint(v23.GetPrincipal(cr.ctx).BlessingStore().Default())
 	if sn := shortName(userName); sn != "" {
 		userName = sn
 	}
@@ -170,7 +170,7 @@ func (cr *channel) UserName() string {
 
 // join starts a chat server and mounts it in the channel path.
 func (cr *channel) join() error {
-	if _, err := cr.server.Listen(veyron2.GetListenSpec(cr.ctx)); err != nil {
+	if _, err := cr.server.Listen(v23.GetListenSpec(cr.ctx)); err != nil {
 		return err
 	}
 	serverChat := vdl.ChatServer(cr.chatServerMethods)
@@ -214,7 +214,7 @@ func (cr *channel) getMembers() ([]*member, error) {
 
 	// Glob on the channel path for mounted members.
 	globPath := cr.path + "/*"
-	globChan, err := veyron2.GetNamespace(ctx).Glob(ctx, globPath)
+	globChan, err := v23.GetNamespace(ctx).Glob(ctx, globPath)
 	if err != nil {
 		return nil, err
 	}
@@ -264,7 +264,7 @@ func (cr *channel) getRemoteBlessings(path string) ([]string, error) {
 
 	// NOTE(nlacasse): Why do I have to use ctx twice here?  Once in
 	// GetClient and again in StartCall.
-	client := veyron2.GetClient(ctx)
+	client := v23.GetClient(ctx)
 
 	// It doesn't matter what method we try to call, since we are only
 	// looking for the RemoteBlessings on the call object.  We call

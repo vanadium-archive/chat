@@ -12,7 +12,7 @@ import (
 
 	"v.io/core/veyron/lib/testutil"
 
-	"v.io/core/veyron2/context"
+	"v.io/v23/context"
 )
 
 // Creates a new context and a new mounttable. Returns the context, mounttable

@@ -11,8 +11,8 @@ import (
 	"github.com/fatih/color"
 	"github.com/nlacasse/gocui"
 
-	"v.io/core/veyron2"
-	"v.io/core/veyron2/naming"
+	"v.io/v23"
+	"v.io/v23/naming"
 )
 
 var (
@@ -81,7 +81,7 @@ func newApp() *app {
 	// Draw the layout.
 	g.Flush()
 
-	ctx, ctxShutdown := veyron2.Init()
+	ctx, ctxShutdown := v23.Init()
 
 	shutdown := func() {
 		ctxShutdown()

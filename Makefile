@@ -24,7 +24,7 @@ else
 	# Use standard go compiler.
 	GO := go
 	# The vdl tool needs either VANADIUM_ROOT or VDLROOT, so set VDLROOT.
-	export VDLROOT := $(shell pwd)/clients/shell/src/v.io/core/veyron2/vdl/vdlroot
+	export VDLROOT := $(shell pwd)/clients/shell/src/v.io/v23/vdl/vdlroot
 endif
 
 
@@ -103,7 +103,7 @@ endif
 # date.
 veyron-binaries: clients/shell/src/v.io
 	$(GO) install \
-	v.io/core/veyron2/vdl/vdl \
+	v.io/v23/vdl/vdl \
 	v.io/core/veyron/services/mounttable/mounttabled \
 	v.io/core/veyron/tools/{principal,servicerunner}
 

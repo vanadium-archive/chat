@@ -3,7 +3,7 @@ package main
 import (
 	"strings"
 
-	"v.io/core/veyron2/security"
+	"v.io/v23/security"
 )
 
 // Calculate the longest common prefix from an array of strings.
