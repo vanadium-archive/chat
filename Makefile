@@ -24,7 +24,7 @@ else
 	# Use standard go compiler.
 	GO := go
 	# The vdl tool needs either VANADIUM_ROOT or VDLROOT, so set VDLROOT.
-	export VDLROOT := $(shell pwd)/clients/shell/src/v.io/v23/vdl/vdlroot
+	export VDLROOT := $(shell pwd)/clients/shell/src/v.io/v23/vdlroot
 endif
 
 
