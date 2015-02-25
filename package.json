@@ -19,7 +19,6 @@
     "consolidate": "^0.10.0",
     "glob": "^4.3.5",
     "jshint": "^2.6.0",
-    "minifyify": "^6.1.0",
     "minimist": "^1.1.0",
     "mkdirp": "^0.5.0",
     "mustache": "^0.8.2",
@@ -29,7 +28,9 @@
     "rework-plugin-colors": "^1.0.3",
     "rework-vars": "^3.1.1",
     "st": "^0.5.2",
-    "which": "~1.0.5"
+    "which": "~1.0.5",
+    "uglifyify": "~3.0.1",
+    "exorcist": "~0.1.6"
   },
   "private": true
 }

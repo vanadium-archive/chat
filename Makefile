@@ -33,6 +33,28 @@ endif
 # fails.
 .DELETE_ON_ERROR:
 
+# Default browserify options: use sourcemaps.
+BROWSERIFY_OPTS := --debug
+# Names that should not be mangled by minification.
+RESERVED_NAMES := 'context,ctx,callback,cb,$$stream'
+# Don't mangle RESERVED_NAMES, and screw ie8.
+MANGLE_OPTS := --mangle [--except $(RESERVED_NAMES) --screw_ie8 ]
+# Don't remove unused variables from function arguments, which could mess up signatures.
+# Also don't evaulate constant expressions, since we rely on them to conditionally require modules only in node.
+COMPRESS_OPTS := --compress [ --no-unused --no-evaluate ]
+
+# Browserify and extract sourcemap, but do not minify.
+define BROWSERIFY
+	mkdir -p $(dir $2)
+	browserify $1 $(BROWSERIFY_OPTS) | exorcist $2.map > $2
+endef
+
+# Browserify, minify, and extract sourcemap.
+define BROWSERIFY-MIN
+	mkdir -p $(dir $2)
+	browserify $1 $(BROWSERIFY_OPTS) --g [ uglifyify $(MANGLE_OPTS) $(COMPRESS_OPTS) ] | exorcist $2.map > $2
+endef
+
 UNAME := $(shell uname)
 
 # When running browser tests on non-Darwin machines, set the --headless flag.
@@ -145,8 +167,7 @@ build/bundle.css: clients/web/css/index.css $(shell find clients/web/css -name "
 # Also see: https://github.com/substack/node-browserify/issues/899
 build/bundle.js: clients/web/js/index.js $(shell find clients/web/js -name "*.js") mkdir-build node_modules veyron-binaries
 	vdl generate --lang=javascript --js_out_dir=clients/web/js chat/vdl
-#browserify $< -d -p [minifyify --map $(@F).map --output $@.map] -o $@
-	browserify $< -d -o $@
+	$(call BROWSERIFY-MIN,$<,$@)
 
 build/index.html: clients/web/public/index.html mkdir-build
 	cp $< $@
