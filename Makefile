@@ -125,9 +125,8 @@ endif
 # date.
 veyron-binaries: clients/shell/src/v.io
 	$(GO) install \
-	v.io/v23/vdl/vdl \
 	v.io/core/veyron/services/mounttable/mounttabled \
-	v.io/core/veyron/tools/{principal,servicerunner}
+	v.io/core/veyron/tools/{principal,servicerunner,vdl}
 
 clients/shell/src/github.com/fatih/color:
 	$(GO) get github.com/fatih/color
