@@ -111,10 +111,10 @@ node_modules: package.json
 	npm prune
 	npm install
 ifdef VANADIUM_ROOT
-	# If VANADIUM_ROOT is defined, link veyron.js from it.
-	rm -rf ./node_modules/veyron
+	# If VANADIUM_ROOT is defined, link vanadium from it.
+	rm -rf ./node_modules/vanadium
 	cd "$(VANADIUM_ROOT)/release/javascript/core" && npm link
-	npm link veyron
+	npm link vanadium
 else
 	# If VANADIUM_ROOT is not defined, install veyron.js from github.
 	npm install git+ssh://git@github.com:veyron/veyron.js.git
@@ -123,7 +123,7 @@ endif
 
 # TODO(sadovsky): Make it so we only run "go install" when binaries are out of
 # date.
-veyron-binaries: clients/shell/src/v.io
+vanadium-binaries: clients/shell/src/v.io
 	$(GO) install \
 	v.io/core/veyron/services/mounttable/mounttabled \
 	v.io/core/veyron/tools/{principal,servicerunner,vdl}
@@ -143,7 +143,7 @@ ifndef VANADIUM_ROOT
 	$(GO) get v.io/core/...
 endif
 
-clients/shell/bin/chat: veyron-binaries
+clients/shell/bin/chat: vanadium-binaries
 clients/shell/bin/chat: clients/shell/src/github.com/fatih/color
 clients/shell/bin/chat: clients/shell/src/github.com/kr/text
 clients/shell/bin/chat: clients/shell/src/github.com/nlacasse/gocui
@@ -151,7 +151,7 @@ clients/shell/bin/chat: $(shell find clients/shell/src -name "*.go")
 	vdl generate --lang=go chat/vdl
 	$(GO) install chat
 
-build-shell: veyron-binaries clients/shell/bin/chat
+build-shell: vanadium-binaries clients/shell/bin/chat
 
 mkdir-build:
 	@mkdir -p build
@@ -164,7 +164,7 @@ build/bundle.css: clients/web/css/index.css $(shell find clients/web/css -name "
 # command to succeed. (Run "ulimit -S -a" and "ulimit -H -a" to see all soft and
 # hard limits respectively.)
 # Also see: https://github.com/substack/node-browserify/issues/899
-build/bundle.js: clients/web/js/index.js $(shell find clients/web/js -name "*.js") mkdir-build node_modules veyron-binaries
+build/bundle.js: clients/web/js/index.js $(shell find clients/web/js -name "*.js") mkdir-build node_modules vanadium-binaries
 	vdl generate --lang=javascript --js_out_dir=clients/web/js chat/vdl
 	$(call BROWSERIFY-MIN,$<,$@)
 
@@ -176,13 +176,13 @@ build/markdown-preview.css: markdown/markdown-preview.css mkdir-build
 
 # This task has the minimal set of dependencies to build the web client assets,
 # so that it can be run on a GCE instance during the deploy process.
-# In particular, it does not depend on a veyron environment or golang.
+# In particular, it does not depend on a vanadium environment or golang.
 build-web-assets: mkdir-build node_modules build/bundle.css build/bundle.js build/index.html build/markdown-preview.css $(shell find markdown -name "*.md")
 	node tools/render-md.js
 
 # TODO(sadovsky): For some reason, browserify and friends get triggered on each
 # build-web invocation, even if their inputs haven't changed.
-build-web: build-web-assets veyron-binaries
+build-web: build-web-assets vanadium-binaries
 
 serve-web: build-web-assets
 	node server.js
@@ -196,7 +196,7 @@ test-shell: build-shell
 	# localhost.
 	$(GO) test chat/... --veyron.tcp.address=localhost:0
 
-# We use the same test runner as veyron.js.  It handles starting and stopping
+# We use the same test runner as vanadium.js.  It handles starting and stopping
 # all required services (proxy, wspr, mounntabled), and runs tests in chrome
 # with prova.
 # TODO(sadovsky): Some of the deps in our package.json are needed solely for
@@ -214,7 +214,7 @@ ifndef VANADIUM_ROOT
 	@echo "The test-web make task requires VANADIUM_ROOT to be set."
 	exit 1
 else
-	node ./node_modules/veyron/test/integration/runner.js -- \
+	node ./node_modules/vanadium/test/integration/runner.js -- \
 	make test-web-runner
 endif
 
@@ -234,12 +234,12 @@ clean:
 	rm -rf node_modules
 	rm -rf clients/shell/{bin,pkg,src/code.google.com,src/github.com,src/golang.org,src/v.io}
 	rm -rf build
-	rm -rf veyron.js
+	rm -rf vanadium.js
 
 lint: node_modules
 	jshint .
 
-.PHONY: all veyron-binaries go-deps
+.PHONY: all vanadium-binaries go-deps
 .PHONY: build-shell build-web-assets build-web serve-web
 .PHONY: test test-shell test-web clean lint
 
