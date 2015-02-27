@@ -17,7 +17,7 @@
   "trailing": true,
   "undef": true,
   "unused": "vars",
-
+  "esnext": true,
   "browser": true,
   "devel": true,
   "node": true,
