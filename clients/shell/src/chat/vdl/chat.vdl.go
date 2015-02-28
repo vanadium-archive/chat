@@ -47,7 +47,7 @@ func (c implChatClientStub) c(ctx *context.T) ipc.Client {
 }
 
 func (c implChatClientStub) SendMessage(ctx *context.T, i0 string, opts ...ipc.CallOpt) (err error) {
-	var call ipc.Call
+	var call ipc.ClientCall
 	if call, err = c.c(ctx).StartCall(ctx, c.name, "SendMessage", []interface{}{i0}, opts...); err != nil {
 		return
 	}
@@ -59,7 +59,7 @@ func (c implChatClientStub) SendMessage(ctx *context.T, i0 string, opts ...ipc.C
 // implements for Chat.
 type ChatServerMethods interface {
 	// SendMessage sends a message to a user.
-	SendMessage(ctx ipc.ServerContext, text string) error
+	SendMessage(ctx ipc.ServerCall, text string) error
 }
 
 // ChatServerStubMethods is the server interface containing
@@ -97,7 +97,7 @@ type implChatServerStub struct {
 	gs   *ipc.GlobState
 }
 
-func (s implChatServerStub) SendMessage(ctx ipc.ServerContext, i0 string) error {
+func (s implChatServerStub) SendMessage(ctx ipc.ServerCall, i0 string) error {
 	return s.impl.SendMessage(ctx, i0)
 }
 
