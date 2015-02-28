@@ -1,12 +1,12 @@
 var React = require('react');
 var url = require('url');
-var veyron = require('veyron');
+var vanadium = require('vanadium');
 
 var Page = require('./components').Page;
 
 var u = url.parse(window.location.href, true);
-var veyronConfig = {
-  logLevel: veyron.logLevels.INFO,
+var vanadiumConfig = {
+  logLevel: vanadium.logLevels.INFO,
   authenticate: u.query.skipauth === undefined
 };
 
@@ -18,7 +18,7 @@ var page = React.renderComponent(
 // Export page on the window for testing/debugging.
 window.page = page;
 
-veyron.init(veyronConfig, function(err, rt) {
+vanadium.init(vanadiumConfig, function(err, rt) {
   if (err) return displayError(err);
 
   rt.on('error', displayError);
