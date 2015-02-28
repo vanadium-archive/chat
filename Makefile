@@ -125,8 +125,8 @@ endif
 # date.
 vanadium-binaries: clients/shell/src/v.io
 	$(GO) install \
-	v.io/core/veyron/services/mounttable/mounttabled \
-	v.io/core/veyron/tools/{principal,servicerunner,vdl}
+	v.io/x/ref/services/mounttable/mounttabled \
+	v.io/x/ref/tools/{principal,servicerunner,vdl}
 
 clients/shell/src/github.com/fatih/color:
 	$(GO) get github.com/fatih/color
@@ -140,7 +140,7 @@ clients/shell/src/github.com/nlacasse/gocui:
 clients/shell/src/v.io:
 # Only go get v.io go repo if VANADIUM_ROOT is not defined.
 ifndef VANADIUM_ROOT
-	$(GO) get v.io/core/...
+	$(GO) get v.io/x/ref/...
 endif
 
 clients/shell/bin/chat: vanadium-binaries

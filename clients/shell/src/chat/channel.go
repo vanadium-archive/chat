@@ -30,7 +30,6 @@ import (
 	"sort"
 	"time"
 
-	_ "v.io/core/veyron/profiles/roaming"
 	"v.io/v23"
 	"v.io/v23/context"
 	"v.io/v23/ipc"
@@ -38,6 +37,7 @@ import (
 	"v.io/v23/options"
 	"v.io/v23/security"
 	"v.io/x/lib/vlog"
+	_ "v.io/x/ref/profiles/roaming"
 
 	"chat/vdl"
 )
