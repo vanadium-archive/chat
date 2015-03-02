@@ -1,37 +1,52 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"io"
-	"os"
-	"os/exec"
-	"regexp"
 	"testing"
 	"time"
 
+	"v.io/x/ref/lib/expect"
+	"v.io/x/ref/lib/modules"
+	"v.io/x/ref/lib/modules/core"
 	"v.io/x/ref/lib/testutil"
 
 	"v.io/v23/context"
 )
 
-// Creates a new context and a new mounttable. Returns the context, mounttable
-// endpoint, and a teardown function.
-func setup(t *testing.T) (*context.T, string, func(*testing.T)) {
-	ctx, shutdown := testutil.InitForTest()
+//go:generate v23 test generate
 
-	mtProc, endpoint, err := startMounttabled()
+// FakeModulesMain is used to trick v23 test generate into generating
+// a modules TestMain.
+// TODO(mattr): This should be removed once v23 test generate is fixed.
+func FakeModulesMain(stdin io.Reader, stdout, stderr io.Writer, env map[string]string, args ...string) error {
+	return nil
+}
+
+// Starts a mounttable.  Returns the name and a stop function.
+func startMountTable(t *testing.T, ctx *context.T) (string, func()) {
+	sh, err := modules.NewShell(ctx, nil)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("unexpected error: %s", err)
 	}
 
-	teardown := func(t *testing.T) {
-		shutdown()
-		if err := mtProc.Kill(); err != nil {
-			t.Fatalf("Error killing mounttabled: %v", err)
+	h, err := sh.Start(core.RootMTCommand, nil, "--veyron.tcp.address=127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("failed to start root mount table: %s", err)
+	}
+
+	s := expect.NewSession(t, h.Stdout(), 5*time.Second)
+	s.ExpectVar("PID")
+	rootName := s.ExpectVar("MT_NAME")
+
+	return rootName, func() {
+		if err := h.Shutdown(nil, nil); err != nil {
+			t.Fatalf("failed to shutdown root mounttable: %s", s.Error())
+		}
+		if err := sh.Cleanup(nil, nil); err != nil {
+			t.Fatalf("failed to cleanup shell: %s", s.Error())
 		}
 	}
-	return ctx, endpoint, teardown
 }
 
 // Asserts that the channel contains members with expected names and no others.
@@ -59,8 +74,11 @@ func AssertMembersWithNames(channel *channel, expectedNames []string) error {
 }
 
 func TestMembers(t *testing.T) {
-	ctx, mounttable, teardown := setup(t)
-	defer teardown(t)
+	ctx, shutdown := testutil.InitForTest()
+	defer shutdown()
+
+	mounttable, stopMountTable := startMountTable(t, ctx)
+	defer stopMountTable()
 
 	path := "path/to/channel"
 
@@ -121,8 +139,11 @@ func TestMembers(t *testing.T) {
 }
 
 func TestBroadcastMessage(t *testing.T) {
-	ctx, mounttable, teardown := setup(t)
-	defer teardown(t)
+	ctx, shutdown := testutil.InitForTest()
+	defer shutdown()
+
+	mounttable, stopMountTable := startMountTable(t, ctx)
+	defer stopMountTable()
 
 	path := "path/to/channel"
 
@@ -164,55 +185,3 @@ func TestBroadcastMessage(t *testing.T) {
 		}
 	}
 }
-
-// startMounttabled starts a mounttabled process on a random port, and returns
-// its process and endpoint, or an error.
-// TODO(nlacasse): We have similar logic in go and js tests and also in the
-// playground for starting services and grepping for endpoints, ports, or other
-// status text.  Consider making a go library that knows how to start common
-// services and return relavent bits of information.
-func startMounttabled() (*os.Process, string, error) {
-	cmd := exec.Command("mounttabled", "--veyron.tcp.address=localhost:0")
-	timeLimit := 5 * time.Second
-	matches, err := startAndWaitFor(cmd, timeLimit, regexp.MustCompile("Mount table .+ endpoint: (.+)\n"))
-	if err != nil {
-		return nil, "", fmt.Errorf("Error starting mounttabled: %v", err)
-	}
-	endpoint := matches[1]
-	return cmd.Process, endpoint, nil
-}
-
-// Begin copy-paste from playground/builder/services.go.
-
-// Helper function to start a command and wait for output.  Arguments are a cmd
-// to run, a timeout, and a regexp.  The slice of strings matched by the regexp
-// is returned.
-func startAndWaitFor(cmd *exec.Cmd, timeout time.Duration, outputRegexp *regexp.Regexp) ([]string, error) {
-	reader, writer := io.Pipe()
-	cmd.Stdout = writer
-	cmd.Stderr = cmd.Stdout
-	err := cmd.Start()
-	if err != nil {
-		return nil, err
-	}
-
-	buf := bufio.NewReader(reader)
-	t := time.After(timeout)
-	ch := make(chan []string)
-	go (func() {
-		for line, err := buf.ReadString('\n'); err == nil; line, err = buf.ReadString('\n') {
-			if matches := outputRegexp.FindStringSubmatch(line); matches != nil {
-				ch <- matches
-			}
-		}
-		close(ch)
-	})()
-	select {
-	case <-t:
-		return nil, fmt.Errorf("Timeout starting service.")
-	case matches := <-ch:
-		return matches, nil
-	}
-}
-
-// End copy-paste from playground/builder/services.go
