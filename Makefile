@@ -126,7 +126,7 @@ endif
 vanadium-binaries: clients/shell/src/v.io
 	$(GO) install \
 	v.io/x/ref/services/mounttable/mounttabled \
-	v.io/x/ref/tools/{principal,servicerunner,vdl}
+	v.io/x/ref/cmd/{principal,servicerunner,vdl}
 
 clients/shell/src/github.com/fatih/color:
 	$(GO) get github.com/fatih/color
