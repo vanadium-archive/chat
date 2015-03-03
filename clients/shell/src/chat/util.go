@@ -24,13 +24,6 @@ func longestCommonPrefix(strings []string) string {
 }
 
 // Note, shortName and firstShortName are duplicated between JS and Go.
-
-// TODO(sadovsky): Fix mismatch between names on received messages and names
-// mounted in the mount table. Perhaps our unit of operation should be blessing
-// rather than client instance, and multiple client instances using the same
-// blessing should be treated as multiple connections for the same user (similar
-// to Hangouts with phone and desktop).
-
 func shortName(fullName string) string {
 	// Split into components and see if any is an email address. A very
 	// sophisticated technique is used to determine if the component is an email

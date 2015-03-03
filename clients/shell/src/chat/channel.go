@@ -26,7 +26,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"math/rand"
 	"sort"
 	"time"
 
@@ -36,15 +35,14 @@ import (
 	"v.io/v23/naming"
 	"v.io/v23/options"
 	"v.io/v23/security"
+	mt "v.io/v23/services/mounttable"
+	"v.io/v23/services/security/access"
+
 	"v.io/x/lib/vlog"
 	_ "v.io/x/ref/profiles/roaming"
 
 	"chat/vdl"
 )
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
 
 // Sender represents the blessings of the sender of the message.
 type Sender []string
@@ -168,6 +166,62 @@ func (cr *channel) UserName() string {
 	return userName
 }
 
+func (cr *channel) getLockedName() (string, error) {
+	// TODO(nlacasse): Is this really how I have to get a list of Blessing
+	// Patterns that matches my blessings?  It sure is a lot of code!
+	myBlessings := v23.GetPrincipal(cr.ctx).BlessingStore().Default()
+	myBlessingsInfo := v23.GetPrincipal(cr.ctx).BlessingsInfo(myBlessings)
+	myPatterns := []security.BlessingPattern{}
+	for patternString := range myBlessingsInfo {
+		myPatterns = append(myPatterns, security.BlessingPattern(patternString))
+	}
+
+	// myACL is an ACL that only allows my blessing.
+	myACL := access.ACL{
+		In: myPatterns,
+	}
+	// openACL is an ACL that allows anybody.
+	openACL := access.ACL{
+		In: []security.BlessingPattern{security.AllPrincipals},
+	}
+
+	aclMap := access.TaggedACLMap{
+		// Give everybody the ability to read and resolve the name.
+		string(mt.Resolve): openACL,
+		string(mt.Read):    openACL,
+		// All other permissions are only for us.
+		string(mt.Admin):  myACL,
+		string(mt.Create): myACL,
+		string(mt.Mount):  myACL,
+	}
+
+	// Repeatedly try to setACL under random names until we find a free
+	// one.
+
+	// Collisions should be rare.  25 times should be enough to find a free
+	// one
+	maxTries := 25
+	for i := 0; i < maxTries; i++ {
+		// Pick a random suffix, the hash of our default blessing and the time.
+		now := time.Now().UnixNano()
+		hash := sha256.Sum256([]byte(fmt.Sprintf("%s-%d", cr.UserName(), now)))
+		suffix := base64.URLEncoding.EncodeToString(hash[:])
+
+		name := naming.Join(cr.path, suffix)
+
+		ns := v23.GetNamespace(cr.ctx)
+
+		if err := ns.SetACL(cr.ctx, name, aclMap, ""); err != nil {
+			// Try again with a different name.
+			continue
+		}
+
+		// SetACL succeeded!  We now own the name.
+		return name, nil
+	}
+	return "", fmt.Errorf("Error getting a locked name.  Tried %v times but did not succeed.", maxTries)
+}
+
 // join starts a chat server and mounts it in the channel path.
 func (cr *channel) join() error {
 	if _, err := cr.server.Listen(v23.GetListenSpec(cr.ctx)); err != nil {
@@ -175,15 +229,12 @@ func (cr *channel) join() error {
 	}
 	serverChat := vdl.ChatServer(cr.chatServerMethods)
 
-	// Mount under a random name, the hash of our default blessing and a random int.
-	hash := sha256.Sum256([]byte(fmt.Sprintf("%s-%d", cr.UserName(), rand.Int())))
-	mountName := base64.URLEncoding.EncodeToString(hash[:])
+	name, err := cr.getLockedName()
+	if err != nil {
+		return err
+	}
 
-	// TODO(nlacasse): Lock the name so others can't mount on the same
-	// name.  Also handle the case where this mount point is already
-	// mounted and locked by picking a new random name.
-	path := naming.Join(cr.path, mountName)
-	if err := cr.server.Serve(path, serverChat, openAuthorizer{}); err != nil {
+	if err := cr.server.Serve(name, serverChat, openAuthorizer{}); err != nil {
 		return err
 	}
 
@@ -191,7 +242,20 @@ func (cr *channel) join() error {
 }
 
 func (cr *channel) leave() error {
-	return cr.server.Stop()
+	// Stop serving.
+	cr.server.Stop()
+
+	// Get the names we are mounted at.  Should only be one.
+	names := cr.server.Status().Mounts.Names()
+	// Delete the ACL from the name and all sub-names in the hierarchy.
+	ns := v23.GetNamespace(cr.ctx)
+	for _, name := range names {
+		if err := ns.Delete(cr.ctx, name, true); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (cr *channel) newMember(blessings []string, path string) *member {
@@ -227,6 +291,14 @@ func (cr *channel) getMembers() ([]*member, error) {
 		case *naming.GlobError:
 			return nil, fmt.Errorf("Error while getting member: %v\n", v.Error)
 		case *naming.MountEntry:
+			if len(v.Servers) == 0 {
+				// No servers mounted at that name, only a
+				// lonely ACL.  Safe to ignore.
+				// TODO(nlacasse): Should there be a time-limit
+				// on ACLs in the namespace?  Seems like we'll
+				// have an ACL graveyard before too long.
+				continue
+			}
 			entryCount++
 			// Get the remote blessings and construct the member in a goroutine.
 			go func(path string) {
