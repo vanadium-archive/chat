@@ -167,14 +167,7 @@ func (cr *channel) UserName() string {
 }
 
 func (cr *channel) getLockedName() (string, error) {
-	// TODO(nlacasse): Is this really how I have to get a list of Blessing
-	// Patterns that matches my blessings?  It sure is a lot of code!
-	myBlessings := v23.GetPrincipal(cr.ctx).BlessingStore().Default()
-	myBlessingsInfo := v23.GetPrincipal(cr.ctx).BlessingsInfo(myBlessings)
-	myPatterns := []security.BlessingPattern{}
-	for patternString := range myBlessingsInfo {
-		myPatterns = append(myPatterns, security.BlessingPattern(patternString))
-	}
+	myPatterns := security.DefaultBlessingPatterns(v23.GetPrincipal(cr.ctx))
 
 	// myACL is an ACL that only allows my blessing.
 	myACL := access.ACL{
