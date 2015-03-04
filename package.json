@@ -22,7 +22,7 @@
     "minimist": "^1.1.0",
     "mkdirp": "^0.5.0",
     "mustache": "^0.8.2",
-    "prova": "aghassemi/prova#0.0.2",
+    "prova": "aghassemi/prova#0.0.4",
     "rework": "^1.0.1",
     "rework-import": "^1.2.1",
     "rework-plugin-colors": "^1.0.3",
