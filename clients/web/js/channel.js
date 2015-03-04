@@ -5,6 +5,7 @@ var EventEmitter = require('events').EventEmitter;
 var inherits = require('inherits');
 var path = require('path');
 
+var access = require('vanadium/src/v.io/v23/services/security/access');
 var noop = require('./noop');
 var ServiceVdl = require('./chat/vdl');
 var util = require('./util');
@@ -27,6 +28,7 @@ function Channel(rt, channelName, cb) {
 
   this.channelName_ = path.join('apps/chat', channelName);
 
+  this.accountName_ = rt.accountName;
   this.namespace_ = rt.namespace();
   this.context_ = rt.getContext();
   this.client_ = rt.newClient();
@@ -57,32 +59,89 @@ function Channel(rt, channelName, cb) {
     });
   };
 
-  // Choose a random name to mount under.
-  // TODO(nlacasse): Use mounttable ACLs to lock the name, and handle the case
-  // that our chosen name is already in use (and locked) by choosing different
-  // names until we find a free one.
-  var serviceName = path.join(this.channelName_, util.randomHex('8'));
-
   // TODO(nlacasee,sadovsky): Our current authorization policy never returns any
   // errors, i.e. everyone is authorized!
   var openAuthorizer = function(){ return null; };
   var options = {authorizer: openAuthorizer};
-  // Note, serve() performs the mount() for us.
-  this.server_.serve(serviceName, new Service(), options, function(err) {
-    if (err) return cb(err);
-    // Use nextTick() for the first updateMembers_() call to give clients a
-    // chance to set up their event listeners.
-    process.nextTick(that.updateMembers_.bind(that));
-    // TODO(sadovsky): Replace with mounttable glob watch.
-    that.intervalID_ = setInterval(that.updateMembers_.bind(that), 2000);
-    return cb();
+
+  // Get a locked name to mount under.
+  this.getLockedName_(function(err, name) {
+    if (err) {
+      return cb(err);
+    }
+
+    that.mountedName_ = name;
+
+    // Note, serve() performs the mount() for us.
+    that.server_.serve(name, new Service(), options, function(err) {
+      if (err) return cb(err);
+      // Use nextTick() for the first updateMembers_() call to give clients a
+      // chance to set up their event listeners.
+      process.nextTick(that.updateMembers_.bind(that));
+      // TODO(sadovsky): Replace with mounttable glob watch.
+      that.intervalID_ = setInterval(that.updateMembers_.bind(that), 2000);
+      return cb();
+    });
   });
 }
+
+Channel.prototype.getLockedName_ = function(cb) {
+  // openACL gives everybody permission.
+  var openACL = new access.ACL({
+    'in': ['...']
+  });
+
+  // myACL only gives my blessings and decendants permission.
+  var myACL = new access.ACL({
+    'in': [this.accountName_]
+  });
+
+  // Create a tagged acl map with the desired permissions.
+  var tam = new access.TaggedACLMap(new Map([
+    // Give everybody the ability to read and resolve the name.
+    ['Read', openACL],
+    ['Resolve', openACL],
+    // All other permissions are only for us.
+    ['Admin', myACL],
+    ['Create', myACL],
+    ['Mount', myACL]
+  ]));
+
+  var that = this;
+
+  // Repeatedly pick random names and try to setACL on them until we get one
+  // that has not already been locked.
+  var maxRetries = 25;
+  function attemptToGetName(tries) {
+    if (tries >= maxRetries) {
+      return cb(new Error('Tried ' + maxRetries + ' to get an unlocked name ' +
+            'but did not succeed.'));
+    }
+
+    // Choose a random name under the channel name.
+    var name = path.join(that.channelName_, util.randomHex(32));
+    var ctx = that.context_.withTimeout(5000);
+    that.namespace_.setACL(ctx, name, tam, '', function(err) {
+      ctx.done();
+      if (err) {
+        // Try again.
+        return attemptToGetName(tries++);
+      }
+      return cb(null, name);
+    });
+  }
+
+  attemptToGetName(0);
+};
 
 Channel.prototype.leave = function(cb) {
   cb = cb || noop;
   clearInterval(this.intervalID_);
-  // TODO(sadovsky): Provide a public method to stop the server.
+
+  if (this.mountedName_) {
+    this.namespace_.delete(this.context_, this.mountedName_, true, noop);
+  }
+
   this.server_.stop(cb);
 };
 
@@ -101,11 +160,11 @@ Channel.prototype.broadcastMessage = function(messageText, cb) {
       that.client_.bindTo(ctx, member.path, function(err, s) {
         if (err) {
           console.error(err);
-          ctx.cancel();
+          ctx.done();
         } else {
           s.sendMessage(ctx, messageText, function(err) {
             if (err) console.error(err);
-            ctx.cancel();
+            ctx.done();
           });
         }
       });
@@ -148,6 +207,11 @@ Channel.prototype.updateMembers_ = function() {
   // Each time we get a mount entry, we request the remote blessings from the
   // server and use those and the path to create a new Member object.
   globStream.on('data', function(mountEntry) {
+    if (!mountEntry.servers) {
+      // No servers mounted at that name, only a lonely ACL.  Safe to ignore.
+      return;
+    }
+
     globResults++;
     var path = mountEntry.name;
 
@@ -169,6 +233,11 @@ Channel.prototype.updateMembers_ = function() {
       if (doneGlobbing && newMembers.length === globResults) {
         // Remove the nulls.
         newMembers = _.filter(newMembers);
+
+        if (newMembers.length === 0) {
+          // No glob results, not even us!  Don't emit anything yet.
+          return;
+        }
 
         // Get the member names for the old and new members and if they differ
         // emit a "members" event which the UI will use to update the members
