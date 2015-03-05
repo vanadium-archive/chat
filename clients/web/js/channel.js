@@ -5,7 +5,7 @@ var EventEmitter = require('events').EventEmitter;
 var inherits = require('inherits');
 var path = require('path');
 
-var access = require('vanadium/src/v.io/v23/services/security/access');
+var access = require('vanadium/src/gen-vdl/v.io/v23/services/security/access');
 var noop = require('./noop');
 var ServiceVdl = require('./chat/vdl');
 var util = require('./util');
