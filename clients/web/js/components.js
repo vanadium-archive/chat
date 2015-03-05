@@ -117,6 +117,11 @@ var Page = React.createClass({
       if (chan) chan.leave();
     });
     chan = new Channel(rt, 'public');
+    chan.on('ready', function() {
+      // Remove splash screen.
+      var splash = document.querySelector('#splash');
+      if (splash) splash.remove();
+    });
     chan.on('members', function(members) {
       that.setState({members: members});
     }).on('message', function(message) {
