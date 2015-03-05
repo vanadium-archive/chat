@@ -193,69 +193,49 @@ Channel.prototype.updateMembers_ = function() {
   });
 
   var newMembers = [];
-  var doneGlobbing = false;
-  var globResults = 0;
 
-  function done(err) {
-    if (err) console.error(err);
-    doneGlobbing = true;
-  }
-
-  globStream.on('end', done);
-  globStream.on('error', done);
-
-  // Each time we get a mount entry, we request the remote blessings from the
-  // server and use those and the path to create a new Member object.
+  // Each time we get a mount entry, we construct a new Member object.
   globStream.on('data', function(mountEntry) {
-    if (!mountEntry.servers) {
+    if (!mountEntry.servers || mountEntry.servers.length === 0) {
       // No servers mounted at that name, only a lonely ACL.  Safe to ignore.
       return;
     }
 
-    globResults++;
+    var blessings = mountEntry.servers[0].blessingPatterns;
     var path = mountEntry.name;
 
-    // Request the remote blessings from the server.  This will make an RPC to
-    // the server and return the blessings that the remote server used to
-    // authenticate.  These blessings are cryptographically verified and can't
-    // be forged by the remote server.
-    that.client_.remoteBlessings(ctx, path, function(err, blessings) {
-      if (err) {
-        // Member has disconnected or is not responding.  Add a null so we can
-        // keep track of how many glob results we have resolved.
-        newMembers.push(null);
-      } else {
-        newMembers.push(new Member(blessings, path));
-      }
-
-      // If the glob stream is closed and we have constructed a Member object
-      // for each glob result, then we are finished.
-      if (doneGlobbing && newMembers.length === globResults) {
-        // Remove the nulls.
-        newMembers = _.filter(newMembers);
-
-        if (newMembers.length === 0) {
-          // No glob results, not even us!  Don't emit anything yet.
-          return;
-        }
-
-        // Get the member names for the old and new members and if they differ
-        // emit a "members" event which the UI will use to update the members
-        // list.
-        var oldMemberNames = memberNames(that.members_);
-        that.members_ = newMembers;
-        var newMemberNames = memberNames(that.members_);
-        if (!_.isEqual(oldMemberNames, newMemberNames)) {
-          that.ee_.emit('members', newMemberNames);
-        }
-
-        if (!that.ready_) {
-          that.ready_ = true;
-          that.ee_.emit('ready');
-        }
-      }
-    });
+    newMembers.push(new Member(blessings, path));
   });
+
+  globStream.on('end', done);
+  globStream.on('error', done);
+
+  function done(err) {
+    if (err) {
+      console.error(err);
+    }
+
+    newMembers = _.filter(newMembers);
+    if (newMembers.length === 0) {
+      // No glob results, not even us!  Don't emit anything yet.
+      return;
+    }
+
+    // Get the member names for the old and new members and if they differ
+    // emit a "members" event which the UI will use to update the members
+    // list.
+    var oldMemberNames = memberNames(that.members_);
+    that.members_ = newMembers;
+    var newMemberNames = memberNames(that.members_);
+    if (!_.isEqual(oldMemberNames, newMemberNames)) {
+      that.ee_.emit('members', newMemberNames);
+    }
+
+    if (!that.ready_) {
+      that.ready_ = true;
+      that.ee_.emit('ready');
+    }
+  }
 };
 
 Channel.prototype.addEventListener = function(event, listener) {

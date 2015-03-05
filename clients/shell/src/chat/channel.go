@@ -270,9 +270,8 @@ func (cr *channel) getMembers() ([]*member, error) {
 		return nil, err
 	}
 
-	// Get the members' paths from the mount entries, and construct member objects.
-	entryCount := 0
-	var memberChan = make(chan *member)
+	members := []*member{}
+
 	for reply := range globChan {
 		switch v := reply.(type) {
 		case *naming.GlobError:
@@ -286,25 +285,8 @@ func (cr *channel) getMembers() ([]*member, error) {
 				// have an ACL graveyard before too long.
 				continue
 			}
-			entryCount++
-			// Get the remote blessings and construct the member in a goroutine.
-			go func(path string) {
-				names, err := cr.getRemoteBlessings(path)
-				if err != nil {
-					// Member has disconnected or is not reachable.
-					memberChan <- nil
-				} else {
-					memberChan <- cr.newMember(names, path)
-				}
-			}(v.Name)
-		}
-	}
 
-	// Collect the members off the memberChan.
-	members := []*member{}
-	for i := 0; i < entryCount; i++ {
-		member := <-memberChan
-		if member != nil {
+			member := cr.newMember(v.Servers[0].BlessingPatterns, v.Name)
 			members = append(members, member)
 		}
 	}
@@ -313,30 +295,6 @@ func (cr *channel) getMembers() ([]*member, error) {
 
 	cr.members = members
 	return members, nil
-}
-
-// getRemoteBlessings makes a request to a client and returns the names of
-// the client's blessings.
-func (cr *channel) getRemoteBlessings(path string) ([]string, error) {
-	ctx, cancel := context.WithTimeout(cr.ctx, 5*time.Second)
-	defer cancel()
-
-	// NOTE(nlacasse): Why do I have to use ctx twice here?  Once in
-	// GetClient and again in StartCall.
-	client := v23.GetClient(ctx)
-
-	// It doesn't matter what method we try to call, since we are only
-	// looking for the RemoteBlessings on the call object.  We call
-	// Signature because we know it will exist, and not clutter up the logs
-	// with "ipc unknown method" errors.
-	call, err := client.StartCall(ctx, path, ipc.ReservedSignature, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	blessings, _ := call.RemoteBlessings()
-
-	return blessings, nil
 }
 
 // broadcastMessage sends a message to all members in the channel.
