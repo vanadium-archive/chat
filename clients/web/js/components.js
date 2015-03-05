@@ -97,6 +97,14 @@ var Compose = React.createClass({
   }
 });
 
+// The splash screen is part of the page HTML, not rendered through React.  This
+// helper function removes it.
+function removeSplash() {
+  // Remove splash screen.
+  var splash = document.querySelector('#splash');
+  if (splash) splash.remove();
+}
+
 var Page = React.createClass({
   getInitialState: function() {
     return {
@@ -117,11 +125,8 @@ var Page = React.createClass({
       if (chan) chan.leave();
     });
     chan = new Channel(rt, 'public');
-    chan.on('ready', function() {
-      // Remove splash screen.
-      var splash = document.querySelector('#splash');
-      if (splash) splash.remove();
-    });
+    chan.on('ready', removeSplash);
+
     chan.on('members', function(members) {
       that.setState({members: members});
     }).on('message', function(message) {
@@ -136,6 +141,7 @@ var Page = React.createClass({
   render: function() {
     var that = this;
     if (this.props.err) {
+      removeSplash();
       return h('div', [
         h('span.alert-error', '' + this.props.err),
         h('div.instructions', [
