@@ -35,7 +35,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	err = vlog.Log.ConfigureLogger(vlog.LogDir(logDir))
+	err = vlog.Log.Configure(vlog.LogDir(logDir))
 	if err != nil {
 		panic(err)
 	}

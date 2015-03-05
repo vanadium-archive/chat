@@ -30,21 +30,22 @@ func startMountTable(t *testing.T, ctx *context.T) (string, func()) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	h, err := sh.Start(core.RootMTCommand, nil, "--veyron.tcp.address=127.0.0.1:0")
+	rootMT, err := sh.Start(core.RootMTCommand, nil, "--veyron.tcp.address=127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("failed to start root mount table: %s", err)
 	}
+	sh.Forget(rootMT)
 
-	s := expect.NewSession(t, h.Stdout(), 5*time.Second)
+	s := expect.NewSession(t, rootMT.Stdout(), 5*time.Second)
 	s.ExpectVar("PID")
 	rootName := s.ExpectVar("MT_NAME")
 
 	return rootName, func() {
-		if err := h.Shutdown(nil, nil); err != nil {
-			t.Fatalf("failed to shutdown root mounttable: %s", s.Error())
-		}
 		if err := sh.Cleanup(nil, nil); err != nil {
 			t.Fatalf("failed to cleanup shell: %s", s.Error())
+		}
+		if err := rootMT.Shutdown(nil, nil); err != nil {
+			t.Fatalf("failed to shutdown root mounttable: %s", s.Error())
 		}
 	}
 }
