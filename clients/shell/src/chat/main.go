@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -13,6 +15,8 @@ import (
 
 	"v.io/v23"
 	"v.io/v23/naming"
+
+	"v.io/x/lib/vlog"
 )
 
 var (
@@ -25,6 +29,20 @@ var (
 const welcomeText = `***Welcome to Vanadium Chat***
 Press Ctrl-C to exit.
 `
+
+func init() {
+	logDir, err := ioutil.TempDir("", "chat-logs")
+	if err != nil {
+		panic(err)
+	}
+	err = vlog.Log.ConfigureLogger(vlog.LogDir(logDir))
+	if err != nil {
+		panic(err)
+	}
+
+	// Make sure that *nothing* ever gets printed to stderr.
+	os.Stderr.Close()
+}
 
 // Defines the layout of the UI.
 func layout(g *gocui.Gui) error {

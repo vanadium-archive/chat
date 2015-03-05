@@ -38,7 +38,6 @@ import (
 	mt "v.io/v23/services/mounttable"
 	"v.io/v23/services/security/access"
 
-	"v.io/x/lib/vlog"
 	_ "v.io/x/ref/profiles/roaming"
 
 	"chat/vdl"
@@ -122,11 +121,6 @@ func newChannel(ctx *context.T, mounttable, path string) (*channel, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// Turn off logging, because it messes with the UI.
-	// TODO(nlacasse): It would be nice if we could only do this if the
-	// user did not pass in a value for -v flag.
-	vlog.Log.ConfigureLogger(vlog.Level(-1))
 
 	s, err := v23.NewServer(newCtx)
 	if err != nil {
