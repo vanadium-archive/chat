@@ -229,16 +229,21 @@ func (a *app) updateMembers() {
 		log.Panicln(err)
 	}
 
-	newCachedMembers := []string{}
-	membersView.Clear()
+	memberNames := make([]string, len(members))
 
-	for _, member := range members {
-		newCachedMembers = append(newCachedMembers, member.Name)
-		membersView.Write([]byte(member.Name + "\n"))
+	for i, member := range members {
+		memberNames[i] = member.Name
+	}
+
+	uniqMemberNames := uniqStrings(memberNames)
+
+	membersView.Clear()
+	for _, memberName := range uniqMemberNames {
+		membersView.Write([]byte(memberName + "\n"))
 	}
 
 	a.mu.Lock()
-	a.cachedMembers = newCachedMembers
+	a.cachedMembers = uniqMemberNames
 	a.mu.Unlock()
 	a.g.Flush()
 }

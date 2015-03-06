@@ -50,3 +50,25 @@ func firstShortName(blessings []string) string {
 	}
 	return string(blessings[0])
 }
+
+// uniqStrings takes a *sorted* slice of strings and returns a slice with all
+// duplicate entries removed.
+func uniqStrings(in []string) []string {
+	if len(in) == 0 {
+		return []string{}
+	}
+
+	out := make([]string, len(in))
+	out[0] = in[0]
+
+	o := 0
+
+	for i := 1; i < len(in); i++ {
+		if out[o] != in[i] {
+			o++
+			out[o] = in[i]
+		}
+	}
+
+	return out[:o+1]
+}
