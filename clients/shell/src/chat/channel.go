@@ -274,8 +274,6 @@ func (cr *channel) getMembers() ([]*member, error) {
 
 	for reply := range globChan {
 		switch v := reply.(type) {
-		case *naming.GlobError:
-			return nil, fmt.Errorf("Error while getting member: %v\n", v.Error)
 		case *naming.MountEntry:
 			if len(v.Servers) == 0 {
 				// No servers mounted at that name, only a

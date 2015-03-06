@@ -208,7 +208,6 @@ Channel.prototype.updateMembers_ = function() {
   });
 
   globStream.on('end', done);
-  globStream.on('error', done);
 
   function done(err) {
     if (err) {
