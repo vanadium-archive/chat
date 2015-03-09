@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"v.io/x/ref/lib/expect"
 	"v.io/x/ref/lib/modules"
 	"v.io/x/ref/lib/modules/core"
 	"v.io/x/ref/lib/testutil"
+	"v.io/x/ref/lib/testutil/expect"
 
 	"v.io/v23/context"
 )
