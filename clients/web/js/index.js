@@ -6,7 +6,7 @@ var Page = require('./components').Page;
 
 var u = url.parse(window.location.href, true);
 var vanadiumConfig = {
-  logLevel: vanadium.logLevels.INFO,
+  logLevel: vanadium.vlog.levels.INFO,
   authenticate: u.query.skipauth === undefined
 };
 
