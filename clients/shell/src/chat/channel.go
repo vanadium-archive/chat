@@ -5,7 +5,7 @@ package main
 //
 // Usage:
 //  // Construct a new channel.
-//  cr := newChannel("path/to/channel/name")
+//  cr := newChannel(ctx, mounttable, proxy, "path/to/channel/name")
 //
 //  // Join the channel.
 //  cr.join()
@@ -115,12 +115,16 @@ type channel struct {
 	members []*member
 }
 
-func newChannel(ctx *context.T, mounttable, path string) (*channel, error) {
+func newChannel(ctx *context.T, mounttable, proxy, path string) (*channel, error) {
 	// Set the namespace root to the mounttable passed on the command line.
 	newCtx, _, err := v23.SetNewNamespace(ctx, mounttable)
 	if err != nil {
 		return nil, err
 	}
+
+	// Set the proxy that will be used to listen.
+	listenSpec := v23.GetListenSpec(ctx)
+	listenSpec.Proxy = proxy
 
 	s, err := v23.NewServer(newCtx)
 	if err != nil {

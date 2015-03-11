@@ -81,12 +81,14 @@ func TestMembers(t *testing.T) {
 	mounttable, stopMountTable := startMountTable(t, ctx)
 	defer stopMountTable()
 
+	proxy := ""
+
 	path := "path/to/channel"
 
 	// Create a new channel.
-	channel, err := newChannel(ctx, mounttable, path)
+	channel, err := newChannel(ctx, mounttable, proxy, path)
 	if err != nil {
-		t.Fatal("newChannel(%v, %v, %v) failed: %v", ctx, mounttable, path)
+		t.Fatal("newChannel(%v, %v, %v) failed: %v", ctx, mounttable, proxy, path)
 	}
 
 	// New channel should be empty.
@@ -105,9 +107,9 @@ func TestMembers(t *testing.T) {
 	}
 
 	// Create and join the channel a second time.
-	channel2, err := newChannel(ctx, mounttable, path)
+	channel2, err := newChannel(ctx, mounttable, proxy, path)
 	if err != nil {
-		t.Fatal("newChannel(%v, %v, %v) failed: %v", ctx, mounttable, path)
+		t.Fatal("newChannel(%v, %v, %v) failed: %v", ctx, mounttable, proxy, path)
 	}
 	if err := channel2.join(); err != nil {
 		t.Fatalf("channel2.join() failed: %v", err)
@@ -146,11 +148,13 @@ func TestBroadcastMessage(t *testing.T) {
 	mounttable, stopMountTable := startMountTable(t, ctx)
 	defer stopMountTable()
 
+	proxy := ""
+
 	path := "path/to/channel"
 
-	channel, err := newChannel(ctx, mounttable, path)
+	channel, err := newChannel(ctx, mounttable, proxy, path)
 	if err != nil {
-		t.Fatalf("newChannel(%v, %v, %v) failed: %v", ctx, mounttable, path, err)
+		t.Fatalf("newChannel(%v, %v, %v) failed: %v", ctx, mounttable, proxy, path, err)
 	}
 
 	defer channel.leave()

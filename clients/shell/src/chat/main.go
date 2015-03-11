@@ -20,8 +20,9 @@ import (
 )
 
 var (
-	mounttable = flag.String("mounttable", "/proxy.envyor.com:8101", "Mounttable where channel is mounted.")
-	// TODO(nlacasse): Allow this to be set by a flag.
+	mounttable = flag.String("mounttable", "/ns.dev.v.io:8101", "Mounttable where channel is mounted.")
+	proxy      = flag.String("proxy", "proxy.dev.v.io:8100", "Proxy to listen on.")
+	// TODO(nlacasse): Allow these to be set by a flag.
 	appName     = "apps/chat"
 	channelName = "public"
 )
@@ -106,7 +107,7 @@ func newApp() *app {
 		g.Close()
 	}
 
-	cr, err := newChannel(ctx, *mounttable, naming.Join(appName, channelName))
+	cr, err := newChannel(ctx, *mounttable, *proxy, naming.Join(appName, channelName))
 	if err != nil {
 		log.Panicln(err)
 	}

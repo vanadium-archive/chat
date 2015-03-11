@@ -146,7 +146,7 @@ var Page = React.createClass({
         h('span.alert-error', '' + this.props.err),
         h('div.instructions', [
           'Follow ',
-          h('a', {href: 'help.html'}, 'these instructions'),
+          h('a', {href: 'README.html'}, 'these instructions'),
           ' to install and run Vanadium Chat.'
         ])
       ]);

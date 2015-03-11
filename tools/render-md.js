@@ -5,7 +5,7 @@ var glob = require('glob');
 var marked = require('marked');
 var path = require('path');
 
-_.each(glob.sync('markdown/*.md'), function(infile) {
+_.each(glob.sync('README.md'), function(infile) {
   var data = fs.readFileSync(infile);
   var body = marked(data.toString('binary'));
   var basename = path.basename(infile, '.md');

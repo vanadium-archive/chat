@@ -166,7 +166,11 @@ build/bundle.css: clients/web/css/index.css $(shell find clients/web/css -name "
 # Also see: https://github.com/substack/node-browserify/issues/899
 build/bundle.js: clients/web/js/index.js $(shell find clients/web/js -name "*.js") mkdir-build node_modules vanadium-binaries
 	vdl generate --lang=javascript --js_out_dir=clients/web/js chat/vdl
+ifndef NOMINIFY
+	$(call BROWSERIFY,$<,$@)
+else
 	$(call BROWSERIFY-MIN,$<,$@)
+endif
 
 build/index.html: clients/web/public/index.html mkdir-build
 	cp $< $@
@@ -177,7 +181,7 @@ build/markdown-preview.css: markdown/markdown-preview.css mkdir-build
 # This task has the minimal set of dependencies to build the web client assets,
 # so that it can be run on a GCE instance during the deploy process.
 # In particular, it does not depend on a vanadium environment or golang.
-build-web-assets: mkdir-build node_modules build/bundle.css build/bundle.js build/index.html build/markdown-preview.css $(shell find markdown -name "*.md")
+build-web-assets: mkdir-build node_modules build/bundle.css build/bundle.js build/index.html build/markdown-preview.css README.md
 	node tools/render-md.js
 
 # TODO(sadovsky): For some reason, browserify and friends get triggered on each
