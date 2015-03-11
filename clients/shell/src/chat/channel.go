@@ -73,7 +73,7 @@ func newChatServerMethods(messages chan<- message) *chatServerMethods {
 // SendMessage is called by clients to send a message to the server.
 func (cs *chatServerMethods) SendMessage(call ipc.ServerCall, IncomingMessage string) error {
 	var sender Sender
-	remoteb, _ := call.RemoteBlessings().ForCall(call)
+	remoteb, _ := security.BlessingNames(call, security.CallSideRemote)
 	sender = Sender(remoteb)
 	cs.messages <- message{
 		Sender:    sender,
