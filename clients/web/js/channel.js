@@ -87,17 +87,17 @@ function Channel(rt, channelName, cb) {
 
 Channel.prototype.getLockedName_ = function(cb) {
   // openACL gives everybody permission.
-  var openACL = new access.ACL({
+  var openACL = new access.AccessList({
     'in': ['...']
   });
 
   // myACL only gives my blessings and decendants permission.
-  var myACL = new access.ACL({
+  var myACL = new access.AccessList({
     'in': [this.accountName_]
   });
 
   // Create a tagged acl map with the desired permissions.
-  var tam = new access.TaggedACLMap(new Map([
+  var tam = new access.Permissions(new Map([
     // Give everybody the ability to read and resolve the name.
     ['Read', openACL],
     ['Resolve', openACL],
@@ -109,8 +109,8 @@ Channel.prototype.getLockedName_ = function(cb) {
 
   var that = this;
 
-  // Repeatedly pick random names and try to setACL on them until we get one
-  // that has not already been locked.
+  // Repeatedly pick random names and try to setPermissions on them until we get
+  // one that has not already been locked.
   var maxRetries = 25;
   function attemptToGetName(tries) {
     if (tries >= maxRetries) {
@@ -121,7 +121,7 @@ Channel.prototype.getLockedName_ = function(cb) {
     // Choose a random name under the channel name.
     var name = path.join(that.channelName_, util.randomHex(32));
     var ctx = that.context_.withTimeout(5000);
-    that.namespace_.setACL(ctx, name, tam, '', function(err) {
+    that.namespace_.setPermissions(ctx, name, tam, '', function(err) {
       ctx.done();
       if (err) {
         // Try again.

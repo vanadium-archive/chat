@@ -168,15 +168,15 @@ func (cr *channel) getLockedName() (string, error) {
 	myPatterns := security.DefaultBlessingPatterns(v23.GetPrincipal(cr.ctx))
 
 	// myACL is an ACL that only allows my blessing.
-	myACL := access.ACL{
+	myACL := access.AccessList{
 		In: myPatterns,
 	}
 	// openACL is an ACL that allows anybody.
-	openACL := access.ACL{
+	openACL := access.AccessList{
 		In: []security.BlessingPattern{security.AllPrincipals},
 	}
 
-	aclMap := access.TaggedACLMap{
+	permissions := access.Permissions{
 		// Give everybody the ability to read and resolve the name.
 		string(mt.Resolve): openACL,
 		string(mt.Read):    openACL,
@@ -186,7 +186,7 @@ func (cr *channel) getLockedName() (string, error) {
 		string(mt.Mount):  myACL,
 	}
 
-	// Repeatedly try to setACL under random names until we find a free
+	// Repeatedly try to SetPermissions under random names until we find a free
 	// one.
 
 	// Collisions should be rare.  25 times should be enough to find a free
@@ -202,7 +202,7 @@ func (cr *channel) getLockedName() (string, error) {
 
 		ns := v23.GetNamespace(cr.ctx)
 
-		if err := ns.SetACL(cr.ctx, name, aclMap, ""); err != nil {
+		if err := ns.SetPermissions(cr.ctx, name, permissions, ""); err != nil {
 			// Try again with a different name.
 			continue
 		}
