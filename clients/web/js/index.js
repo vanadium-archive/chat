@@ -18,7 +18,12 @@ var page = React.renderComponent(
 window.page = page;
 
 vanadium.init(vanadiumConfig, function(err, rt) {
-  if (err) return displayError(err);
+  if (err) {
+    if (err instanceof vanadium.errors.ExtensionNotInstalledError) {
+      return vanadium.extension.promptUserToInstallExtension();
+    }
+    return displayError(err);
+  }
 
   rt.on('error', displayError);
   rt.on('crash', displayError);
