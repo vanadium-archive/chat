@@ -125,7 +125,7 @@ Channel.prototype.getLockedName_ = function(cb) {
       ctx.done();
       if (err) {
         // Try again.
-        return attemptToGetName(tries++);
+        return attemptToGetName(tries + 1);
       }
       return cb(null, name);
     });
