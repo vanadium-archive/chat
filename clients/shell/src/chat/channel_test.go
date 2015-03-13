@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"v.io/x/ref/lib/modules"
-	"v.io/x/ref/lib/modules/core"
-	"v.io/x/ref/lib/testutil"
-	"v.io/x/ref/lib/testutil/expect"
-
 	"v.io/v23/context"
+
+	"v.io/x/ref/test"
+	"v.io/x/ref/test/expect"
+	"v.io/x/ref/test/modules"
+	"v.io/x/ref/test/modules/core"
 )
 
 //go:generate v23 test generate
@@ -75,7 +75,7 @@ func AssertMembersWithNames(channel *channel, expectedNames []string) error {
 }
 
 func TestMembers(t *testing.T) {
-	ctx, shutdown := testutil.InitForTest()
+	ctx, shutdown := test.InitForTest()
 	defer shutdown()
 
 	mounttable, stopMountTable := startMountTable(t, ctx)
@@ -142,7 +142,7 @@ func TestMembers(t *testing.T) {
 }
 
 func TestBroadcastMessage(t *testing.T) {
-	ctx, shutdown := testutil.InitForTest()
+	ctx, shutdown := test.InitForTest()
 	defer shutdown()
 
 	mounttable, stopMountTable := startMountTable(t, ctx)
