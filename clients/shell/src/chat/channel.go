@@ -73,7 +73,7 @@ func newChatServerMethods(messages chan<- message) *chatServerMethods {
 // SendMessage is called by clients to send a message to the server.
 func (cs *chatServerMethods) SendMessage(call ipc.ServerCall, IncomingMessage string) error {
 	var sender Sender
-	remoteb, _ := security.BlessingNames(call, security.CallSideRemote)
+	remoteb, _ := security.BlessingNames(call.Context(), security.CallSideRemote)
 	sender = Sender(remoteb)
 	cs.messages <- message{
 		Sender:    sender,
@@ -148,7 +148,7 @@ func newChannel(ctx *context.T, mounttable, proxy, path string) (*channel, error
 // functionality.
 type openAuthorizer struct{}
 
-func (o openAuthorizer) Authorize(_ security.Call) error {
+func (o openAuthorizer) Authorize(*context.T) error {
 	return nil
 }
 
