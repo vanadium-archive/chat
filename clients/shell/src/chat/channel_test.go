@@ -9,7 +9,6 @@ import (
 	"v.io/v23/context"
 
 	"v.io/x/ref/test"
-	"v.io/x/ref/test/expect"
 	"v.io/x/ref/test/modules"
 	"v.io/x/ref/test/modules/core"
 )
@@ -25,7 +24,7 @@ func FakeModulesMain(stdin io.Reader, stdout, stderr io.Writer, env map[string]s
 
 // Starts a mounttable.  Returns the name and a stop function.
 func startMountTable(t *testing.T, ctx *context.T) (string, func()) {
-	sh, err := modules.NewShell(ctx, nil)
+	sh, err := modules.NewShell(ctx, nil, testing.Verbose(), t)
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
 	}
@@ -36,16 +35,15 @@ func startMountTable(t *testing.T, ctx *context.T) (string, func()) {
 	}
 	sh.Forget(rootMT)
 
-	s := expect.NewSession(t, rootMT.Stdout(), 5*time.Second)
-	s.ExpectVar("PID")
-	rootName := s.ExpectVar("MT_NAME")
+	rootMT.ExpectVar("PID")
+	rootName := rootMT.ExpectVar("MT_NAME")
 
 	return rootName, func() {
 		if err := sh.Cleanup(nil, nil); err != nil {
-			t.Fatalf("failed to cleanup shell: %s", s.Error())
+			t.Fatalf("failed to cleanup shell: %s", rootMT.Error())
 		}
 		if err := rootMT.Shutdown(nil, nil); err != nil {
-			t.Fatalf("failed to shutdown root mounttable: %s", s.Error())
+			t.Fatalf("failed to shutdown root mounttable: %s", rootMT.Error())
 		}
 	}
 }
