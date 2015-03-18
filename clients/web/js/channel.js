@@ -10,21 +10,27 @@ var noop = require('./noop');
 var ServiceVdl = require('./chat/vdl');
 var util = require('./util');
 
+// Member is a member of the channel.
 function Member(blessings, path) {
+  // The name of the member.
   this.name = util.firstShortName(blessings);
+  // The path at which the member is mounted in the mounttable.
   this.path = path;
 }
 
+// memberNames takes an array of members and returns a sorted list of this
+// names.
 function memberNames(members) {
   return _.map(members, function(member) {
     return member.name;
   }).sort();
 }
 
-// Joins the specified channel, creating it if needed.
-// Emits 'members', 'message', and 'ready' events.
-function Channel(rt, channelName, cb) {
-  cb = cb || noop;
+// Channel encapsulates the logic for a client of the Vanadium Chat.  It
+// inherits from EventEmitter and emits 'members', 'message', and 'ready'
+// events.
+function Channel(rt, channelName) {
+  EventEmitter.call(this);
 
   this.channelName_ = path.join('apps/chat', channelName);
 
@@ -34,12 +40,17 @@ function Channel(rt, channelName, cb) {
   this.client_ = rt.newClient();
   this.server_ = rt.newServer();
 
-  this.ee_ = new EventEmitter();
   this.ready_ = false;
   this.members_ = [];
-  this.intervalID_ = null;  // initialized below
+  this.intervalID_ = null;
+}
 
-  var that = this;
+inherits(Channel, EventEmitter);
+
+// join creates a Vanadium server and mounts it in the mounttable under a
+// random "locked" name.
+Channel.prototype.join = function(cb) {
+  cb = cb || noop;
 
   // Create our service implementation, which defines a single method:
   // "SendMessage".  We inherit from ServiceVdl.Chat which causes our defined
@@ -51,18 +62,21 @@ function Channel(rt, channelName, cb) {
   };
   inherits(Service, ServiceVdl.Chat);
 
+  // The implementation of sendMessage emits the message with the sender's
+  // name and timestamp.
   Service.prototype.sendMessage = function(ctx, text) {
-    that.ee_.emit('message', {
+    that.emit('message', {
       sender: util.firstShortName(ctx.remoteBlessingStrings),
       text: text,
       timestamp: new Date()
     });
   };
 
-  // TODO(nlacasee,sadovsky): Our current authorization policy never returns any
-  // errors, i.e. everyone is authorized!
+  // openAuthorizer allows RPCs from all clients.
   var openAuthorizer = function(){ return null; };
   var options = {authorizer: openAuthorizer};
+
+  var that = this;
 
   // Get a locked name to mount under.
   this.getLockedName_(function(err, name) {
@@ -72,19 +86,20 @@ function Channel(rt, channelName, cb) {
 
     that.mountedName_ = name;
 
+    // Serve the chat service under the locked name.
     // Note, serve() performs the mount() for us.
     that.server_.serve(name, new Service(), options, function(err) {
       if (err) return cb(err);
-      // Use nextTick() for the first updateMembers_() call to give clients a
-      // chance to set up their event listeners.
-      process.nextTick(that.updateMembers_.bind(that));
-      // TODO(sadovsky): Replace with mounttable glob watch.
+      that.updateMembers_();
       that.intervalID_ = setInterval(that.updateMembers_.bind(that), 2000);
       return cb();
     });
   });
-}
+};
 
+// getLockedName picks a random name and attempts to "lock" it by setting
+// restrictive permissions.  It tries repeatedly until it picks a name that is
+// not locked by another client.
 Channel.prototype.getLockedName_ = function(cb) {
   // openACL gives everybody permission.
   var openACL = new access.AccessList({
@@ -134,45 +149,70 @@ Channel.prototype.getLockedName_ = function(cb) {
   attemptToGetName(0);
 };
 
+// leave stops the chat server, and deletes our name from the mounttable.
 Channel.prototype.leave = function(cb) {
   cb = cb || noop;
-  clearInterval(this.intervalID_);
 
+  // Stop updating member names.
+  if (this.intervalID_) {
+    clearInterval(this.intervalID_);
+    this.intervalID_ = null;
+  }
+
+  // Delete our name from the mounttable.
   if (this.mountedName_) {
     this.namespace_.delete(this.context_, this.mountedName_, true, noop);
   }
 
+  // Stop the server.
   this.server_.stop(cb);
 };
 
-Channel.prototype.broadcastMessage = function(messageText, cb) {
-  var that = this;
+// sendMessageTo sends a message to a particular member.
+Channel.prototype.sendMessageTo = function(member, messageText, cb) {
   cb = cb || noop;
-  // Schedule all messages to be sent, then return immediately.
-  // TODO(sadovsky): Better error handling, perhaps?
-  _.forEach(this.members_, function(member) {
-    process.nextTick(function() {
-      var ctx = that.context_.withTimeout(5000);
-      // TODO(nlacasse): Make sure that the server we bindTo has the blessings
-      // that we got when we globbed.  This will prevent some other member from
-      // sneaking in with the same name as a recently-disconnected member and
-      // getting messages meant for the first member.
-      that.client_.bindTo(ctx, member.path, function(err, s) {
-        if (err) {
-          console.error(err);
-          ctx.done();
-        } else {
-          s.sendMessage(ctx, messageText, function(err) {
-            if (err) console.error(err);
-            ctx.done();
-          });
-        }
-      });
+
+  var ctx = this.context_.withTimeout(5000);
+
+  // Bind to the member's chat server.
+  // TODO(nlacasse): Make sure that the server we bindTo has the blessings
+  // that we got when we globbed.  This will prevent some other member from
+  // sneaking in with the same name as a recently-disconnected member and
+  // getting messages meant for the first member.
+  this.client_.bindTo(ctx, member.path, function(err, s) {
+    if (err) {
+      ctx.done();
+      return cb(err);
+    }
+
+    // Invoke sendMessage on the member's chat server with messageText.
+    s.sendMessage(ctx, messageText, function(err) {
+      if (err) {
+        return cb(err);
+      }
+      ctx.done();
+      return cb(null);
     });
   });
-  return cb();
 };
 
+// broadcastMessage sends a message to all members in the channel.
+Channel.prototype.broadcastMessage = function(messageText, cb) {
+  cb = cb || noop;
+  var that = this;
+
+  // Schedule all messages to be sent, then return immediately.
+  _.forEach(this.members_, function(member) {
+    process.nextTick(function() {
+      that.sendMessageTo(member, messageText);
+    });
+  });
+  return cb(null);
+};
+
+// updateMembers_ globs the mounttable and constructs member objects for each
+// server in the glob results.  Channel will emit 'members' event if the
+// members have changed since the last glob.
 Channel.prototype.updateMembers_ = function() {
   var that = this;
 
@@ -214,7 +254,6 @@ Channel.prototype.updateMembers_ = function() {
       console.error(err);
     }
 
-    newMembers = _.filter(newMembers);
     if (newMembers.length === 0) {
       // No glob results, not even us!  Don't emit anything yet.
       return;
@@ -227,31 +266,12 @@ Channel.prototype.updateMembers_ = function() {
     that.members_ = newMembers;
     var newMemberNames = memberNames(that.members_);
     if (!_.isEqual(oldMemberNames, newMemberNames)) {
-      that.ee_.emit('members', newMemberNames);
+      that.emit('members', newMemberNames);
     }
 
     if (!that.ready_) {
       that.ready_ = true;
-      that.ee_.emit('ready');
+      that.emit('ready');
     }
   }
 };
-
-Channel.prototype.addEventListener = function(event, listener) {
-  this.ee_.addListener(event, listener);
-  return this;
-};
-
-Channel.prototype.once = function(event, listener) {
-  this.ee_.once(event, listener);
-  return this;
-};
-
-Channel.prototype.on = Channel.prototype.addEventListener;
-
-Channel.prototype.removeEventListener = function(event, listener) {
-  this.ee_.removeListener(event, listener);
-  return this;
-};
-
-Channel.prototype.off = Channel.prototype.removeEventListener;

@@ -34,15 +34,18 @@ main() {
   local -r PROXYD_ADDR="localhost:8100"
   local -r MOUNTTABLED_ADDR="localhost:8101"
 
-  "${VANADIUM_BIN}/proxyd" --veyron.namespace.root="/${MOUNTTABLED_ADDR}" \
-      --veyron.tcp.address="${PROXYD_ADDR}" \
-      --name=proxy \
+  "${VANADIUM_BIN}/mounttabled" --veyron.tcp.address="${MOUNTTABLED_ADDR}" \
       --veyron.credentials="${VANADIUM_CREDENTIALS}" \
+      --veyron.tcp.protocol=ws \
       --v=1 --alsologtostderr=true &
 
-  "${VANADIUM_BIN}/mounttabled" --veyron.tcp.address="${MOUNTTABLED_ADDR}" \
-      --veyron.tcp.protocol=ws \
+  # Give the mounttable time to start.
+  sleep 2
+
+  "${VANADIUM_BIN}/proxyd" --veyron.namespace.root="/${MOUNTTABLED_ADDR}" \
       --veyron.credentials="${VANADIUM_CREDENTIALS}" \
+      --veyron.tcp.address="${PROXYD_ADDR}" \
+      --name=proxy \
       --v=1 --alsologtostderr=true &
 
   # Wait forever.

@@ -68,7 +68,7 @@ func (hw *historyWriter) formatMessage(m message) string {
 	const timeFormat = "Jan 2 at 3:04pm"
 	t := m.Timestamp.Format(timeFormat)
 
-	return fmt.Sprintf("%s %s: %s\n", yellow(t), cyan(m.Sender.ShortName()), hw.highlightUserName(m.Text))
+	return fmt.Sprintf("%s %s: %s\n", yellow(t), cyan(m.SenderName), hw.highlightUserName(m.Text))
 }
 
 // writeMessage formats a message and writes.

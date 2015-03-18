@@ -5,22 +5,22 @@ package main
 //
 // Usage:
 //  // Construct a new channel.
-//  cr := newChannel(ctx, mounttable, proxy, "path/to/channel/name")
+//  c := newChannel(ctx, mounttable, proxy, "path/to/channel/name")
 //
 //  // Join the channel.
-//  cr.join()
+//  err := c.join()
 //
 //  // Get all members in the channel.
-//  members, err := cr.getMembers()
+//  members, err := c.getMembers()
 //
 //  // Send a message to a member.
-//  cr.sendMessageTo(member, "message")
+//  c.sendMessageTo(member, "message")
 //
 //  // Send a message to all members in the channel.
-//  cr.broadcastMessage("message")
+//  c.broadcastMessage("message")
 //
 //  // Leave the channel.
-//  cr.leave()
+//  c.leave()
 
 import (
 	"crypto/sha256"
@@ -43,20 +43,14 @@ import (
 	"chat/vdl"
 )
 
-// Sender represents the blessings of the sender of the message.
-type Sender []string
-
-func (s Sender) ShortName() string {
-	return firstShortName(s)
-}
-
+// message is a message that will be displayed in the UI.
 type message struct {
-	Sender    Sender
-	Text      string
-	Timestamp time.Time
+	SenderName string
+	Text       string
+	Timestamp  time.Time
 }
 
-// Chat server interface.
+// chatServerMethods implements the chat server VDL interface.
 type chatServerMethods struct {
 	// Incoming messages get sent to messages channel.
 	messages chan<- message
@@ -72,13 +66,11 @@ func newChatServerMethods(messages chan<- message) *chatServerMethods {
 
 // SendMessage is called by clients to send a message to the server.
 func (cs *chatServerMethods) SendMessage(call rpc.ServerCall, IncomingMessage string) error {
-	var sender Sender
 	remoteb, _ := security.BlessingNames(call.Context(), security.CallSideRemote)
-	sender = Sender(remoteb)
 	cs.messages <- message{
-		Sender:    sender,
-		Text:      IncomingMessage,
-		Timestamp: time.Now(),
+		SenderName: firstShortName(remoteb),
+		Text:       IncomingMessage,
+		Timestamp:  time.Now(),
 	}
 	return nil
 }
@@ -95,7 +87,6 @@ type member struct {
 }
 
 // members are sortable by Name.
-// Consider using https://github.com/pmylund/sortutil
 type byName []*member
 
 func (b byName) Len() int           { return len(b) }
@@ -104,10 +95,13 @@ func (b byName) Less(i, j int) bool { return b[i].Name < b[j].Name }
 
 // channel interface.
 type channel struct {
-	chatServerMethods *chatServerMethods
+	// Vanadium context.
+	ctx *context.T
 	// The location where we mount ourselves and look for other users.
-	path   string
-	ctx    *context.T
+	path string
+	// The implementation of the chat server.
+	chatServerMethods *chatServerMethods
+	// The chat server.
 	server rpc.Server
 	// Channel that emits incoming messages.
 	messages chan message
@@ -126,11 +120,6 @@ func newChannel(ctx *context.T, mounttable, proxy, path string) (*channel, error
 	listenSpec := v23.GetListenSpec(ctx)
 	listenSpec.Proxy = proxy
 
-	s, err := v23.NewServer(newCtx)
-	if err != nil {
-		return nil, err
-	}
-
 	messages := make(chan message)
 
 	return &channel{
@@ -138,14 +127,11 @@ func newChannel(ctx *context.T, mounttable, proxy, path string) (*channel, error
 		messages:          messages,
 		path:              path,
 		ctx:               newCtx,
-		server:            s,
+		server:            nil,
 	}, nil
 }
 
 // openAuthorizer allows RPCs from all clients.
-// TODO(nlacasse): Write a more strict authorizer once we have a better
-// understanding of ACLs and identities, and once javascript supports similar
-// functionality.
 type openAuthorizer struct{}
 
 func (o openAuthorizer) Authorize(*context.T) error {
@@ -164,6 +150,10 @@ func (cr *channel) UserName() string {
 	return userName
 }
 
+// getLockedName picks a random name inside the channel's mounttable path and
+// tries to "lock" it by settings restrictive permissions on the name.  It
+// tries repeatedly until it finds an unused name that can be locked, and
+// returns the locked name.
 func (cr *channel) getLockedName() (string, error) {
 	myPatterns := security.DefaultBlessingPatterns(v23.GetPrincipal(cr.ctx))
 
@@ -207,7 +197,7 @@ func (cr *channel) getLockedName() (string, error) {
 			continue
 		}
 
-		// SetACL succeeded!  We now own the name.
+		// SetPermissions succeeded!  We now own the name.
 		return name, nil
 	}
 	return "", fmt.Errorf("Error getting a locked name.  Tried %v times but did not succeed.", maxTries)
@@ -215,30 +205,43 @@ func (cr *channel) getLockedName() (string, error) {
 
 // join starts a chat server and mounts it in the channel path.
 func (cr *channel) join() error {
-	if _, err := cr.server.Listen(v23.GetListenSpec(cr.ctx)); err != nil {
+	// Create a new server.
+	s, err := v23.NewServer(cr.ctx)
+	if err != nil {
 		return err
 	}
-	serverChat := vdl.ChatServer(cr.chatServerMethods)
 
+	// Start listening for incoming connections.
+	if _, err := s.Listen(v23.GetListenSpec(cr.ctx)); err != nil {
+		return err
+	}
+
+	// Get a locked name in the mounttable that we can mount our server on.
 	name, err := cr.getLockedName()
 	if err != nil {
 		return err
 	}
 
-	if err := cr.server.Serve(name, serverChat, openAuthorizer{}); err != nil {
+	// Serve the chat server on the locked name.
+	serverChat := vdl.ChatServer(cr.chatServerMethods)
+	if err := s.Serve(name, serverChat, openAuthorizer{}); err != nil {
 		return err
 	}
+
+	cr.server = s
 
 	return nil
 }
 
+// leave stops the chat server and removes our mounted name from the
+// mounttable.
 func (cr *channel) leave() error {
 	// Stop serving.
 	cr.server.Stop()
 
 	// Get the names we are mounted at.  Should only be one.
 	names := cr.server.Status().Mounts.Names()
-	// Delete the ACL from the name and all sub-names in the hierarchy.
+	// Delete the name and all sub-names in the hierarchy.
 	ns := v23.GetNamespace(cr.ctx)
 	for _, name := range names {
 		if err := ns.Delete(cr.ctx, name, true); err != nil {
@@ -246,9 +249,12 @@ func (cr *channel) leave() error {
 		}
 	}
 
+	cr.server = nil
+
 	return nil
 }
 
+// newMember creates a new member object.
 func (cr *channel) newMember(blessings []string, path string) *member {
 	name := "unknown"
 	if len(blessings) > 0 {
@@ -309,6 +315,8 @@ func (cr *channel) broadcastMessage(messageText string) error {
 	return nil
 }
 
+// sendMessageTo sends a message to a particular member.  It ensures that the
+// receiving server has the same blessings that the member does.
 func (cr *channel) sendMessageTo(member *member, messageText string) {
 	ctx, cancel := context.WithTimeout(cr.ctx, 5*time.Second)
 	defer cancel()

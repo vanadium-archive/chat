@@ -181,10 +181,8 @@ func TestBroadcastMessage(t *testing.T) {
 		if m.Text != message {
 			t.Errorf("Expected message text to be %v but got %v", message, m.Text)
 		}
-		if len(m.Sender) == 0 {
-			t.Errorf("Expected message.Sender to be [%v] but got an empty set", channel.UserName())
-		} else if got, want := m.Sender[0], channel.UserName(); got != want {
-			t.Errorf("Got m.Sender[0] = %v, want %v", got, want)
+		if got, want := m.SenderName, channel.UserName(); got != want {
+			t.Errorf("Got m.SenderName = %v, want %v", got, want)
 		}
 	}
 }

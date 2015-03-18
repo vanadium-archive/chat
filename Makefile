@@ -126,7 +126,12 @@ endif
 vanadium-binaries: clients/shell/src/v.io
 	$(GO) install \
 	v.io/x/ref/services/mounttable/mounttabled \
+	v.io/x/ref/services/proxy/proxyd \
 	v.io/x/ref/cmd/{principal,servicerunner,vdl}
+
+gen-vdl: vanadium-binaries
+	vdl generate --lang=go chat/vdl
+	vdl generate --lang=javascript --js_out_dir=clients/web/js chat/vdl
 
 clients/shell/src/github.com/fatih/color:
 	$(GO) get github.com/fatih/color
@@ -143,12 +148,11 @@ ifndef VANADIUM_ROOT
 	$(GO) get v.io/x/ref/...
 endif
 
-clients/shell/bin/chat: vanadium-binaries
+clients/shell/bin/chat: vanadium-binaries gen-vdl
 clients/shell/bin/chat: clients/shell/src/github.com/fatih/color
 clients/shell/bin/chat: clients/shell/src/github.com/kr/text
 clients/shell/bin/chat: clients/shell/src/github.com/nlacasse/gocui
 clients/shell/bin/chat: $(shell find clients/shell/src -name "*.go")
-	vdl generate --lang=go chat/vdl
 	$(GO) install chat
 
 build-shell: vanadium-binaries clients/shell/bin/chat
@@ -164,8 +168,7 @@ build/bundle.css: clients/web/css/index.css $(shell find clients/web/css -name "
 # command to succeed. (Run "ulimit -S -a" and "ulimit -H -a" to see all soft and
 # hard limits respectively.)
 # Also see: https://github.com/substack/node-browserify/issues/899
-build/bundle.js: clients/web/js/index.js $(shell find clients/web/js -name "*.js") mkdir-build node_modules vanadium-binaries
-	vdl generate --lang=javascript --js_out_dir=clients/web/js chat/vdl
+build/bundle.js: clients/web/js/index.js $(shell find clients/web/js -name "*.js") gen-vdl mkdir-build node_modules vanadium-binaries
 ifndef NOMINIFY
 	$(call BROWSERIFY,$<,$@)
 else
@@ -243,7 +246,7 @@ clean:
 lint: node_modules
 	jshint .
 
-.PHONY: all vanadium-binaries go-deps
+.PHONY: all vanadium-binaries go-deps gen-vdl
 .PHONY: build-shell build-web-assets build-web serve-web
 .PHONY: test test-shell test-web clean lint
 

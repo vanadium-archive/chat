@@ -125,6 +125,7 @@ var Page = React.createClass({
       if (chan) chan.leave();
     });
     chan = new Channel(rt, 'public');
+
     chan.on('ready', removeSplash);
 
     chan.on('members', function(members) {
@@ -137,6 +138,9 @@ var Page = React.createClass({
       members: [],
       messages: []
     });
+
+    // Join the channel.
+    chan.join();
   },
   render: function() {
     var that = this;
