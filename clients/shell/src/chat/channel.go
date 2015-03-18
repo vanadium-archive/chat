@@ -31,9 +31,9 @@ import (
 
 	"v.io/v23"
 	"v.io/v23/context"
-	"v.io/v23/ipc"
 	"v.io/v23/naming"
 	"v.io/v23/options"
+	"v.io/v23/rpc"
 	"v.io/v23/security"
 	mt "v.io/v23/services/mounttable"
 	"v.io/v23/services/security/access"
@@ -71,7 +71,7 @@ func newChatServerMethods(messages chan<- message) *chatServerMethods {
 }
 
 // SendMessage is called by clients to send a message to the server.
-func (cs *chatServerMethods) SendMessage(call ipc.ServerCall, IncomingMessage string) error {
+func (cs *chatServerMethods) SendMessage(call rpc.ServerCall, IncomingMessage string) error {
 	var sender Sender
 	remoteb, _ := security.BlessingNames(call.Context(), security.CallSideRemote)
 	sender = Sender(remoteb)
@@ -108,7 +108,7 @@ type channel struct {
 	// The location where we mount ourselves and look for other users.
 	path   string
 	ctx    *context.T
-	server ipc.Server
+	server rpc.Server
 	// Channel that emits incoming messages.
 	messages chan message
 	// Cached list of channel members.
@@ -317,7 +317,7 @@ func (cr *channel) sendMessageTo(member *member, messageText string) {
 
 	// The AllowedServersPolicy options require that the server matches the
 	// blessings we got when we globbed it.
-	opts := make([]ipc.CallOpt, len(member.Blessings))
+	opts := make([]rpc.CallOpt, len(member.Blessings))
 	for i, blessing := range member.Blessings {
 		opts[i] = options.AllowedServersPolicy{security.BlessingPattern(blessing)}
 	}
