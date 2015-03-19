@@ -12,6 +12,8 @@ var util = require('./util');
 
 // Member is a member of the channel.
 function Member(blessings, path) {
+  // The member's blessings.
+  this.blessings = blessings;
   // The name of the member.
   this.name = util.firstShortName(blessings);
   // The path at which the member is mounted in the mounttable.
@@ -172,13 +174,15 @@ Channel.prototype.leave = function(cb) {
 Channel.prototype.sendMessageTo = function(member, messageText, cb) {
   cb = cb || noop;
 
+  // The allowedServersPolicy options require that the server matches the
+  // blessings we got when we globbed it.
+  var callOpts = this.client_.callOptions({
+    allowedServersPolicy: member.blessings
+  });
+
   var ctx = this.context_.withTimeout(5000);
 
   // Bind to the member's chat server.
-  // TODO(nlacasse): Make sure that the server we bindTo has the blessings
-  // that we got when we globbed.  This will prevent some other member from
-  // sneaking in with the same name as a recently-disconnected member and
-  // getting messages meant for the first member.
   this.client_.bindTo(ctx, member.path, function(err, s) {
     if (err) {
       ctx.done();
@@ -186,7 +190,7 @@ Channel.prototype.sendMessageTo = function(member, messageText, cb) {
     }
 
     // Invoke sendMessage on the member's chat server with messageText.
-    s.sendMessage(ctx, messageText, function(err) {
+    s.sendMessage(ctx, messageText, callOpts, function(err) {
       if (err) {
         return cb(err);
       }
