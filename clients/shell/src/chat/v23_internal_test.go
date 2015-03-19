@@ -14,9 +14,7 @@ import "v.io/x/ref/test"
 import "v.io/x/ref/test/modules"
 
 func init() {
-	modules.RegisterChild("FakeModulesMain", `FakeModulesMain is used to trick v23 test generate into generating
-a modules TestMain.
-TODO(mattr): This should be removed once v23 test generate is fixed.`, FakeModulesMain)
+	modules.RegisterChild("rootMT", ``, rootMT)
 }
 
 func TestMain(m *testing.M) {
