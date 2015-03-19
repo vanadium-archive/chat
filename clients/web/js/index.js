@@ -25,7 +25,6 @@ vanadium.init(vanadiumConfig, function(err, rt) {
     return displayError(err);
   }
 
-  rt.on('error', displayError);
   rt.on('crash', displayError);
 
   page.setProps({rt: rt});
