@@ -285,16 +285,16 @@ func (cr *channel) getMembers() ([]*member, error) {
 	for reply := range globChan {
 		switch v := reply.(type) {
 		case *naming.MountEntry:
-			if len(v.Servers) == 0 {
-				// No servers mounted at that name, only a
+			blessings := blessingNamesFromMountEntry(v)
+			if len(blessings) == 0 {
+				// No servers mounted at that name, likely only a
 				// lonely ACL.  Safe to ignore.
 				// TODO(nlacasse): Should there be a time-limit
 				// on ACLs in the namespace?  Seems like we'll
 				// have an ACL graveyard before too long.
 				continue
 			}
-
-			member := cr.newMember(v.Servers[0].BlessingPatterns, v.Name)
+			member := cr.newMember(blessings, v.Name)
 			members = append(members, member)
 		}
 	}
@@ -333,4 +333,24 @@ func (cr *channel) sendMessageTo(member *member, messageText string) {
 	if err := s.SendMessage(ctx, messageText, opts...); err != nil {
 		return // member has disconnected.
 	}
+}
+
+func blessingNamesFromMountEntry(me *naming.MountEntry) []string {
+	names := me.Names()
+	if len(names) == 0 {
+		return nil
+	}
+	// Using the first valid mount entry for now.
+	// TODO(nlacasse): How should we deal with multiple members mounted on
+	// a single mountpoint?
+	for _, name := range names {
+		addr, _ := naming.SplitAddressName(name)
+		ep, err := v23.NewEndpoint(addr)
+		if err != nil {
+			// TODO(nlacasse): Log this or bubble up?
+			continue
+		}
+		return ep.BlessingNames()
+	}
+	return nil
 }
