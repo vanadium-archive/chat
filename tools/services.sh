@@ -7,7 +7,7 @@
 # Generate identities and starts daemons for chat app host.
 # TODO(nlacasse): Consider re-writing this in Go.
 
-source $VANADIUM_ROOT/release/go/src/v.io/x/ref/cmd/mgmt/shell/lib/shell.sh
+source $VANADIUM_ROOT/release/projects/chat/tools/shell.sh
 
 trap at_exit INT TERM EXIT
 
