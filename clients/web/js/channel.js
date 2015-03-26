@@ -10,6 +10,7 @@ var inherits = require('inherits');
 var path = require('path');
 
 var access = require('vanadium/src/gen-vdl/v.io/v23/services/security/access');
+var naming = require('vanadium').naming;
 var noop = require('./noop');
 var ServiceVdl = require('./chat/vdl');
 var util = require('./util');
@@ -249,7 +250,12 @@ Channel.prototype.updateMembers_ = function() {
       return;
     }
 
-    var blessings = mountEntry.servers[0].blessingPatterns;
+    // TODO(ashankar,nlacasse): Check with p@ and figure out if
+    // mountEntry.servers[0].server can have a "suffix" after the address.
+    // (e.g., @4@...@@/foo/bar).
+    // This won't be the case for the chat application, but can be in general?
+    var addr = mountEntry.servers[0].server;
+    var blessings = naming.util.blessingNamesFromAddress(addr);
     var path = mountEntry.name;
 
     newMembers.push(new Member(blessings, path));
