@@ -61,17 +61,12 @@ func startMountTable(t *testing.T, ctx *context.T) (string, func()) {
 	if err != nil {
 		t.Fatalf("failed to start root mount table: %s", err)
 	}
-	sh.Forget(rootMT)
-
 	rootMT.ExpectVar("PID")
 	rootName := rootMT.ExpectVar("MT_NAME")
 
 	return rootName, func() {
 		if err := sh.Cleanup(nil, nil); err != nil {
 			t.Fatalf("failed to cleanup shell: %s", rootMT.Error())
-		}
-		if err := rootMT.Shutdown(nil, nil); err != nil {
-			t.Fatalf("failed to shutdown root mounttable: %s", rootMT.Error())
 		}
 	}
 }
