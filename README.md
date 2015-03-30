@@ -183,7 +183,7 @@ The chat binary is built into `clients/shell/bin/chat`.  You can build it with:
 In order for the chat client to talk to the mounttable and proxy servers, you
 will need to get an identity from the identity server:
 
-    export VEYRON_CREDENTIALS=/tmp/vanadium-credentials
+    export V23_CREDENTIALS=/tmp/vanadium-credentials
     $VANADIUM_ROOT/release/go/bin/principal seekblessings
 
 Then run the binary and pass in the veyron.namespace.root and veyron.proxy
