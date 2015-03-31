@@ -225,11 +225,11 @@ else
 	make test-web-runner
 endif
 
-# Note: runner.js sets the NAMESPACE_ROOT and PROXY_ADDR env vars for the
+# Note: runner.js sets the V23_NAMESPACE and PROXY_ADDR env vars for the
 # spawned test subprocess; we specify "make test-web-runner" as the test
 # command so that we can then reference these vars in the Vanadium extension
 # and our prova command.
-test-web-runner: APP_FRAME := "./build/index.html?mtname=$(NAMESPACE_ROOT)"
+test-web-runner: APP_FRAME := "./build/index.html?mtname=$(V23_NAMESPACE)"
 test-web-runner: VANADIUM_JS := $(VANADIUM_ROOT)/release/javascript/core
 test-web-runner: BROWSER_OPTS := --options="--load-extension=$(VANADIUM_JS)/extension/build-test/,--ignore-certificate-errors,--enable-logging=stderr" $(BROWSER_OPTS)
 test-web-runner:
