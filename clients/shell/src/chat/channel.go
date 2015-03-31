@@ -39,8 +39,8 @@ import (
 	"v.io/v23/options"
 	"v.io/v23/rpc"
 	"v.io/v23/security"
+	"v.io/v23/security/access"
 	mt "v.io/v23/services/mounttable"
-	"v.io/v23/services/security/access"
 
 	_ "v.io/x/ref/profiles/roaming"
 
