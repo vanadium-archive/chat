@@ -105,7 +105,7 @@ all: build-shell build-web
 deploy-staging: build-web-assets
 	git rev-parse --verify HEAD >> build/version
 	gcloud config set project vanadium-staging
-	gsutil -m rsync -d -r build gs://staging.chat.v.io
+	gsutil -m rsync -d -r build gs://chat.staging.v.io
 
 node_modules: package.json
 	npm prune
