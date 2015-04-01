@@ -80,7 +80,7 @@ Channel.prototype.join = function(cb) {
   };
 
   // openAuthorizer allows RPCs from all clients.
-  var openAuthorizer = function(){ return null; };
+  var openAuthorizer = function(secCall, cb){ cb(null); };
   var options = {authorizer: openAuthorizer};
 
   var that = this;

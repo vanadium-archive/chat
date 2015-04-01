@@ -29,27 +29,27 @@ module.exports = {};
 
 // Services:
 
-  
-    
+
+
 function Chat(){}
 module.exports.Chat = Chat
 
-    
-      
+
+
 Chat.prototype.sendMessage = function(ctx, text) {
   throw new Error('Method SendMessage not implemented');
 };
-     
 
-    
+
+
 Chat.prototype._serviceDescription = {
   name: 'Chat',
   pkgPath: 'chat/vdl',
   doc: "",
   embeds: [],
   methods: [
-    
-      
+
+
     {
     name: 'SendMessage',
     doc: "// SendMessage sends a message to a user.",
@@ -64,11 +64,6 @@ Chat.prototype._serviceDescription = {
     outStream: null,
     tags: []
   },
-     
+
   ]
 };
-
-   
- 
-
-
