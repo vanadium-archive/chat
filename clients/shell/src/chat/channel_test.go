@@ -57,7 +57,7 @@ func startMountTable(t *testing.T, ctx *context.T) (string, func()) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	rootMT, err := sh.Start("rootMT", nil, "--veyron.tcp.address=127.0.0.1:0")
+	rootMT, err := sh.Start("rootMT", nil, "--v23.tcp.address=127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("failed to start root mount table: %s", err)
 	}

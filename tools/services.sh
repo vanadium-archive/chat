@@ -33,22 +33,22 @@ main() {
 
   # Generate a self-signed identity to run identityd as.
   local -r VANADIUM_CREDENTIALS=$(shell::tmp_dir)
-  "${VANADIUM_BIN}/principal" seekblessings --veyron.credentials "${VANADIUM_CREDENTIALS}"
+  "${VANADIUM_BIN}/principal" seekblessings --v23.credentials "${VANADIUM_CREDENTIALS}"
 
   local -r PROXYD_ADDR="localhost:8100"
   local -r MOUNTTABLED_ADDR="localhost:8101"
 
-  "${VANADIUM_BIN}/mounttabled" --veyron.tcp.address="${MOUNTTABLED_ADDR}" \
-      --veyron.credentials="${VANADIUM_CREDENTIALS}" \
-      --veyron.tcp.protocol=ws \
+  "${VANADIUM_BIN}/mounttabled" --v23.tcp.address="${MOUNTTABLED_ADDR}" \
+      --v23.credentials="${VANADIUM_CREDENTIALS}" \
+      --v23.tcp.protocol=ws \
       --v=1 --alsologtostderr=true &
 
   # Give the mounttable time to start.
   sleep 2
 
-  "${VANADIUM_BIN}/proxyd" --veyron.namespace.root="/${MOUNTTABLED_ADDR}" \
-      --veyron.credentials="${VANADIUM_CREDENTIALS}" \
-      --veyron.tcp.address="${PROXYD_ADDR}" \
+  "${VANADIUM_BIN}/proxyd" --v23.namespace.root="/${MOUNTTABLED_ADDR}" \
+      --v23.credentials="${VANADIUM_CREDENTIALS}" \
+      --v23.tcp.address="${PROXYD_ADDR}" \
       --name=proxy \
       --v=1 --alsologtostderr=true &
 

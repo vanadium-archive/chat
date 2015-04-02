@@ -186,8 +186,7 @@ will need to get an identity from the identity server:
     export V23_CREDENTIALS=/tmp/vanadium-credentials
     $VANADIUM_ROOT/release/go/bin/principal seekblessings
 
-Then run the binary and pass in the veyron.namespace.root and veyron.proxy
-flags.
+Then run the binary and pass in the v23.namespace.root and v23.proxy flags.
 TODO(nlacasse): Update the flag names when they change.
 
     ./clients/shell/bin/chat --mounttable=/localhost:8101 --proxy=proxy
