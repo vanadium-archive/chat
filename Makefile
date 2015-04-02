@@ -131,7 +131,7 @@ vanadium-binaries: clients/shell/src/v.io
 
 gen-vdl: vanadium-binaries
 	vdl generate --lang=go chat/vdl
-	vdl generate --lang=javascript --js_out_dir=clients/web/js chat/vdl
+	vdl generate --lang=javascript --js-out-dir=clients/web/js chat/vdl
 
 clients/shell/src/github.com/fatih/color:
 	$(GO) get github.com/fatih/color
