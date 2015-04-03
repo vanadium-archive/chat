@@ -255,7 +255,7 @@ Channel.prototype.updateMembers_ = function() {
     // (e.g., @4@...@@/foo/bar).
     // This won't be the case for the chat application, but can be in general?
     var addr = mountEntry.servers[0].server;
-    var blessings = naming.util.blessingNamesFromAddress(addr);
+    var blessings = naming.blessingNamesFromAddress(addr);
     var path = mountEntry.name;
 
     newMembers.push(new Member(blessings, path));
