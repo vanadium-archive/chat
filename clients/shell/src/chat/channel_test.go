@@ -15,7 +15,7 @@ import (
 	"v.io/v23/context"
 	"v.io/v23/options"
 
-	mtlib "v.io/x/ref/services/mounttable/lib"
+	"v.io/x/ref/services/mounttable/mounttablelib"
 	"v.io/x/ref/test"
 	"v.io/x/ref/test/modules"
 )
@@ -31,7 +31,7 @@ func rootMT(stdin io.Reader, stdout, stderr io.Writer, env map[string]string, ar
 	if err != nil {
 		return fmt.Errorf("root failed: %v", err)
 	}
-	mt, err := mtlib.NewMountTableDispatcher("")
+	mt, err := mounttablelib.NewMountTableDispatcher("")
 	if err != nil {
 		return fmt.Errorf("mounttable.NewMountTableDispatcher failed: %s", err)
 	}
