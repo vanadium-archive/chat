@@ -32,7 +32,7 @@ In order to install the shell client, please do the following:
 
 2. Start the Vanadium Security Agent
 
-        $VANADIUM_ROOT/release/go/src/v.io/x/ref/cmd/mgmt/vbash
+        $VANADIUM_ROOT/release/go/src/v.io/x/ref/cmd/vbash
 
   You may be prompted for a password, and may have to select blessing caveats
   in your web browser.
