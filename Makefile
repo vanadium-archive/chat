@@ -3,27 +3,27 @@ export PATH := node_modules/.bin:clients/shell/bin:$(PATH)
 export GOPATH := $(shell pwd)/clients/shell:$(GOPATH)
 export VDLPATH := $(GOPATH)
 
-# Don't use VANADIUM_ROOT if NO_VANADIUM_ROOT is set.
-# This is equivalent to "VANADIUM_ROOT= make ..."
-ifdef NO_VANADIUM_ROOT
-  VANADIUM_ROOT :=
+# Don't use V23_ROOT if NO_V23_ROOT is set.
+# This is equivalent to "V23_ROOT= make ..."
+ifdef NO_V23_ROOT
+  V23_ROOT :=
 endif
 
-# If VANADIUM_ROOT is defined, we should compile/build our clients against the
+# If V23_ROOT is defined, we should compile/build our clients against the
 # code there.  This allows us to test our clients againts the current code, and
 # simplifies debugging.  In order to make this work, we must change our PATHs
-# and go compiler depending on whether VANADIUM_ROOT is set.
-ifdef VANADIUM_ROOT
+# and go compiler depending on whether V23_ROOT is set.
+ifdef V23_ROOT
 	# Use "v23" go compiler wrapper.
 	GO := v23 go
-	# v23 puts binaries in $(VANADIUM_ROOT)/release/go/bin, so add that to the PATH.
-	PATH := $(VANADIUM_ROOT)/release/go/bin:$(PATH)
+	# v23 puts binaries in $(V23_ROOT)/release/go/bin, so add that to the PATH.
+	PATH := $(V23_ROOT)/release/go/bin:$(PATH)
 	# Add location of node and npm from environment repo.
-	export PATH := $(VANADIUM_ROOT)/environment/cout/node/bin:$(PATH)
+	export PATH := $(V23_ROOT)/environment/cout/node/bin:$(PATH)
 else
 	# Use standard go compiler.
 	GO := go
-	# The vdl tool needs either VANADIUM_ROOT or VDLROOT, so set VDLROOT.
+	# The vdl tool needs either V23_ROOT or VDLROOT, so set VDLROOT.
 	export VDLROOT := $(shell pwd)/clients/shell/src/v.io/v23/vdlroot
 endif
 
@@ -110,13 +110,13 @@ deploy-staging: build-web-assets
 node_modules: package.json
 	npm prune
 	npm install
-ifdef VANADIUM_ROOT
-	# If VANADIUM_ROOT is defined, link vanadium from it.
+ifdef V23_ROOT
+	# If V23_ROOT is defined, link vanadium from it.
 	rm -rf ./node_modules/vanadium
-	cd "$(VANADIUM_ROOT)/release/javascript/core" && npm link
+	cd "$(V23_ROOT)/release/javascript/core" && npm link
 	npm link vanadium
 else
-	# If VANADIUM_ROOT is not defined, install veyron.js from github.
+	# If V23_ROOT is not defined, install veyron.js from github.
 	npm install git+ssh://git@github.com:veyron/veyron.js.git
 endif
 	touch node_modules
@@ -143,8 +143,8 @@ clients/shell/src/github.com/nlacasse/gocui:
 	$(GO) get github.com/nlacasse/gocui
 
 clients/shell/src/v.io:
-# Only go get v.io go repo if VANADIUM_ROOT is not defined.
-ifndef VANADIUM_ROOT
+# Only go get v.io go repo if V23_ROOT is not defined.
+ifndef V23_ROOT
 	$(GO) get v.io/x/ref/...
 endif
 
@@ -210,15 +210,15 @@ test-shell: build-shell
 # runner.js. We should restructure things so that runner.js is its own npm
 # package with its own deps.
 test-web: lint build-web
-ifndef VANADIUM_ROOT
+ifndef V23_ROOT
 	# The js tests needs the extension built into a folder so that it can be
 	# loaded with chrome on startup.  The extension build process currently
-	# depends on v23, the Vanadium "web" profile, and VANADIUM_ROOT.
+	# depends on v23, the Vanadium "web" profile, and V23_ROOT.
 	#
 	# TODO(nlacasse): Either make the extension build process have less
 	# dependencies, or distribute a version of the extension that can be
 	# unpacked into a directory and used in tests by other projects like chat.
-	@echo "The test-web make task requires VANADIUM_ROOT to be set."
+	@echo "The test-web make task requires V23_ROOT to be set."
 	exit 1
 else
 	node ./node_modules/vanadium/test/integration/runner.js -- \
@@ -230,7 +230,7 @@ endif
 # command so that we can then reference these vars in the Vanadium extension
 # and our prova command.
 test-web-runner: APP_FRAME := "./build/index.html?mtname=$(V23_NAMESPACE)"
-test-web-runner: VANADIUM_JS := $(VANADIUM_ROOT)/release/javascript/core
+test-web-runner: VANADIUM_JS := $(V23_ROOT)/release/javascript/core
 test-web-runner: BROWSER_OPTS := --options="--load-extension=$(VANADIUM_JS)/extension/build-test/,--ignore-certificate-errors,--enable-logging=stderr" $(BROWSER_OPTS)
 test-web-runner:
 	$(MAKE) -C $(VANADIUM_JS)/extension clean

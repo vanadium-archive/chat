@@ -7,7 +7,7 @@
 # Generate identities and starts daemons for chat app host.
 # TODO(nlacasse): Consider re-writing this in Go.
 
-source $VANADIUM_ROOT/release/projects/chat/tools/shell.sh
+source $V23_ROOT/release/projects/chat/tools/shell.sh
 
 trap at_exit INT TERM EXIT
 
@@ -29,7 +29,7 @@ main() {
 
   make vanadium-binaries
 
-  local -r VANADIUM_BIN="${VANADIUM_ROOT}/release/go/bin"
+  local -r VANADIUM_BIN="${V23_ROOT}/release/go/bin"
 
   # Generate a self-signed identity to run identityd as.
   local -r VANADIUM_CREDENTIALS=$(shell::tmp_dir)

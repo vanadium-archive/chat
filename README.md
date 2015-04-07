@@ -21,24 +21,24 @@ Please file bugs and feature requests in our [issue tracker][issue-tracker].
 ### Running the shell client
 
 These instructions assume you have an up-to-date [Vanadium development
-environment][vanadium-installation] inside `$VANADIUM_ROOT`.
+environment][vanadium-installation] inside `$V23_ROOT`.
 
 In order to install the shell client, please do the following:
 
 1. Build the chat binary.
 
-        cd $VANADIUM_ROOT/release/projects/chat
+        cd $V23_ROOT/release/projects/chat
         make build-shell
 
 2. Start the Vanadium Security Agent
 
-        $VANADIUM_ROOT/release/go/src/v.io/x/ref/cmd/vbash
+        $V23_ROOT/release/go/src/v.io/x/ref/cmd/vbash
 
   You may be prompted for a password, and may have to select blessing caveats
   in your web browser.
 
   TODO(nlacasse): Is there a better way to get the agent that does not require
-  $VANADIUM_ROOT ?
+  $V23_ROOT ?
 
 3. Run the chat binary.
 
@@ -184,7 +184,7 @@ In order for the chat client to talk to the mounttable and proxy servers, you
 will need to get an identity from the identity server:
 
     export V23_CREDENTIALS=/tmp/vanadium-credentials
-    $VANADIUM_ROOT/release/go/bin/principal seekblessings
+    $V23_ROOT/release/go/bin/principal seekblessings
 
 Then run the binary and pass in the v23.namespace.root and v23.proxy flags.
 TODO(nlacasse): Update the flag names when they change.
