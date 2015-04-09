@@ -288,8 +288,8 @@ func (cr *channel) getMembers() ([]*member, error) {
 
 	for reply := range globChan {
 		switch v := reply.(type) {
-		case *naming.MountEntry:
-			blessings := blessingNamesFromMountEntry(v)
+		case *naming.GlobReplyEntry:
+			blessings := blessingNamesFromMountEntry(&v.Value)
 			if len(blessings) == 0 {
 				// No servers mounted at that name, likely only a
 				// lonely ACL.  Safe to ignore.
@@ -298,7 +298,7 @@ func (cr *channel) getMembers() ([]*member, error) {
 				// have an ACL graveyard before too long.
 				continue
 			}
-			member := cr.newMember(blessings, v.Name)
+			member := cr.newMember(blessings, v.Value.Name)
 			members = append(members, member)
 		}
 	}
