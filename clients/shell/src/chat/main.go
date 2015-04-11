@@ -18,8 +18,6 @@ import (
 	"github.com/nlacasse/gocui"
 
 	"v.io/v23"
-	"v.io/v23/naming"
-
 	"v.io/x/lib/vlog"
 )
 
@@ -27,8 +25,7 @@ var (
 	mounttable = flag.String("mounttable", "/ns.dev.v.io:8101", "Mounttable where channel is mounted.")
 	proxy      = flag.String("proxy", "proxy.dev.v.io:8100", "Proxy to listen on.")
 	// TODO(nlacasse): Allow these to be set by a flag.
-	appName     = "apps/chat"
-	channelName = "public"
+	channelName = "users/vanadium.bot@gmail.com/apps/chat/public"
 )
 
 const welcomeText = `***Welcome to Vanadium Chat***
@@ -111,7 +108,7 @@ func newApp() *app {
 		g.Close()
 	}
 
-	cr, err := newChannel(ctx, *mounttable, *proxy, naming.Join(appName, channelName))
+	cr, err := newChannel(ctx, *mounttable, *proxy, channelName)
 	if err != nil {
 		log.Panicln(err)
 	}

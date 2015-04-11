@@ -128,7 +128,7 @@ var Page = React.createClass({
     window.addEventListener('beforeunload', function() {
       if (chan) chan.leave();
     });
-    chan = new Channel(rt, 'public');
+    chan = new Channel(rt);
 
     chan.on('ready', removeSplash);
 

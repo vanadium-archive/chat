@@ -15,6 +15,9 @@ var noop = require('./noop');
 var ServiceVdl = require('./chat/vdl');
 var util = require('./util');
 
+// TODO(nlacasse): Make this configurable.
+var CHANNEL_NAME = 'users/vanadium.bot@gmail.com/apps/chat/public';
+
 // Member is a member of the channel.
 function Member(blessings, path) {
   // The member's blessings.
@@ -36,10 +39,10 @@ function memberNames(members) {
 // Channel encapsulates the logic for a client of the Vanadium Chat.  It
 // inherits from EventEmitter and emits 'members', 'message', and 'ready'
 // events.
-function Channel(rt, channelName) {
+function Channel(rt) {
   EventEmitter.call(this);
 
-  this.channelName_ = path.join('apps/chat', channelName);
+  this.channelName_ = CHANNEL_NAME;
 
   this.accountName_ = rt.accountName;
   this.namespace_ = rt.namespace();

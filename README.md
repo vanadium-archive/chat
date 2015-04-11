@@ -69,21 +69,25 @@ The chat application relies on servers for three things:
 
 ### Client discoverability
 
+A particular directory in the namespace --
+`users/vanadium.bot@gmail.com/apps/chat/public` -- has been created with
+permissions that allow anybody to mount and glob inside that directory.
+
 When a client joins the chat room, it generates a random string and attempts to
 mount itself in the public [mounttable server][mounttable] under the name
-`apps/chat/public/<random_string>`.  If that name is already taken, the client
-will pick a new random string and try again.
+`users/vanadium.bot@gmail.com/apps/chat/public/<random_string>`.  If that name
+is already taken, the client will pick a new random string and try again.
 
 The client sets permissions on that name which prevent peers from mounting on
 the same name, but allow them to resolve that name to the client's endpoint.
 The client essentially "owns" that particular name in the mounttable.
 
 To find other peers, the client sends a `Glob` RPC to the mounttable, asking
-for all names matching `apps/chat/public/*`.  The results of this Glob
-correspond to peers in the chat room.  Each result contains the peer's
-endpoint and its [blessing pattern][blessings].  The blessing pattern is used
-to identify the peer in the chat UI, and to ensure that messages are only sent
-to intended recipients.
+for all names matching `users/vanadium.bot@gmail.com/apps/chat/public/*`.  The
+results of this Glob correspond to peers in the chat room.  Each result
+contains the peer's endpoint and its [blessing pattern][blessings].  The
+blessing pattern is used to identify the peer in the chat UI, and to ensure
+that messages are only sent to intended recipients.
 
 Chat currently only supports a single chat room called `public`, but eventually
 it will support multiple rooms, including private rooms visible to only certain
