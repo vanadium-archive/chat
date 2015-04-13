@@ -8,6 +8,7 @@ var _ = require('lodash');
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('inherits');
 var path = require('path');
+var url = require('url');
 
 var access = require('vanadium/src/gen-vdl/v.io/v23/security/access');
 var naming = require('vanadium').naming;
@@ -15,8 +16,8 @@ var noop = require('./noop');
 var ServiceVdl = require('./chat/vdl');
 var util = require('./util');
 
-// TODO(nlacasse): Make this configurable.
-var CHANNEL_NAME = 'users/vanadium.bot@gmail.com/apps/chat/public';
+// Default channel name. Override by setting "channel" query param in url.
+var DEFAULT_CHANNNEL = 'users/vanadium.bot@gmail.com/apps/chat/public';
 
 // Member is a member of the channel.
 function Member(blessings, path) {
@@ -42,7 +43,8 @@ function memberNames(members) {
 function Channel(rt) {
   EventEmitter.call(this);
 
-  this.channelName_ = CHANNEL_NAME;
+  var u = url.parse(window.location.href, true);
+  this.channelName_ = u.query.channel || DEFAULT_CHANNNEL;
 
   this.accountName_ = rt.accountName;
   this.namespace_ = rt.namespace();

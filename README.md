@@ -73,6 +73,9 @@ A particular directory in the namespace --
 `users/vanadium.bot@gmail.com/apps/chat/public` -- has been created with
 permissions that allow anybody to mount and glob inside that directory.
 
+TODO(nlacasse): Describe permissions set up once permission settings are
+finalized. (See go/vcl/9767)
+
 When a client joins the chat room, it generates a random string and attempts to
 mount itself in the public [mounttable server][mounttable] under the name
 `users/vanadium.bot@gmail.com/apps/chat/public/<random_string>`.  If that name

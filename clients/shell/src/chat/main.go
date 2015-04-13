@@ -22,10 +22,9 @@ import (
 )
 
 var (
-	mounttable = flag.String("mounttable", "/ns.dev.v.io:8101", "Mounttable where channel is mounted.")
-	proxy      = flag.String("proxy", "proxy.dev.v.io:8100", "Proxy to listen on.")
-	// TODO(nlacasse): Allow these to be set by a flag.
-	channelName = "users/vanadium.bot@gmail.com/apps/chat/public"
+	mounttable  = flag.String("mounttable", "/ns.dev.v.io:8101", "Mounttable where channel is mounted.")
+	proxy       = flag.String("proxy", "proxy.dev.v.io:8100", "Proxy to listen on.")
+	channelName = flag.String("channel", "users/vanadium.bot@gmail.com/apps/chat/public", "Channel to join.")
 )
 
 const welcomeText = `***Welcome to Vanadium Chat***
@@ -108,7 +107,7 @@ func newApp() *app {
 		g.Close()
 	}
 
-	cr, err := newChannel(ctx, *mounttable, *proxy, channelName)
+	cr, err := newChannel(ctx, *mounttable, *proxy, *channelName)
 	if err != nil {
 		log.Panicln(err)
 	}
@@ -121,7 +120,7 @@ func newApp() *app {
 	hw.Write([]byte(color.RedString(welcomeText)))
 
 	hw.Write([]byte(fmt.Sprintf("You have joined channel '%s' on mounttable '%s'.\n"+
-		"Your username is '%s'.\n\n", channelName, *mounttable, cr.UserName())))
+		"Your username is '%s'.\n\n", *channelName, *mounttable, cr.UserName())))
 
 	a := &app{
 		cr:       cr,
