@@ -113,7 +113,11 @@ func newApp() *app {
 		log.Panicln(err)
 	}
 
-	hw := newHistoryWriter(g.View("history"), cr.UserName())
+	historyView, err := g.View("history")
+	if err != nil {
+		log.Panicln(err)
+	}
+	hw := newHistoryWriter(historyView, cr.UserName())
 	hw.Write([]byte(color.RedString(welcomeText)))
 
 	hw.Write([]byte(fmt.Sprintf("You have joined channel '%s' on mounttable '%s'.\n"+
@@ -139,7 +143,7 @@ func (a *app) log(m string) {
 }
 
 func (a *app) quit(g *gocui.Gui, v *gocui.View) error {
-	return gocui.ErrorQuit
+	return gocui.Quit
 }
 
 func (a *app) handleSendMessage(g *gocui.Gui, v *gocui.View) error {
@@ -224,7 +228,10 @@ func (a *app) setKeybindings() error {
 // members view. It also caches the members in app.cachedMembers for use in tab
 // autocomplete.
 func (a *app) updateMembers() {
-	membersView := a.g.View("members")
+	membersView, err := a.g.View("members")
+	if err != nil {
+		log.Panicln(err)
+	}
 
 	members, err := a.cr.getMembers()
 	if err != nil {
@@ -280,7 +287,7 @@ func (a *app) run() error {
 	a.displayIncomingMessages()
 
 	// Start the main UI loop.
-	if err := a.g.MainLoop(); err != nil && err != gocui.ErrorQuit {
+	if err := a.g.MainLoop(); err != nil && err != gocui.Quit {
 		return err
 	}
 

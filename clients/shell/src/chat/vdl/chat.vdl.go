@@ -37,11 +37,7 @@ type implChatClientStub struct {
 }
 
 func (c implChatClientStub) SendMessage(ctx *context.T, i0 string, opts ...rpc.CallOpt) (err error) {
-	var call rpc.ClientCall
-	if call, err = v23.GetClient(ctx).StartCall(ctx, c.name, "SendMessage", []interface{}{i0}, opts...); err != nil {
-		return
-	}
-	err = call.Finish()
+	err = v23.GetClient(ctx).Call(ctx, c.name, "SendMessage", []interface{}{i0}, nil, opts...)
 	return
 }
 
