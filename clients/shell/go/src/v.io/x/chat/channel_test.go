@@ -197,7 +197,7 @@ func TestBroadcastMessage(t *testing.T) {
 	}()
 
 	select {
-	case <-time.After(1 * time.Second):
+	case <-time.After(10 * time.Second):
 		t.Errorf("Timeout waiting for message to be received.")
 	case m := <-channel.messages:
 		if m.Text != message {
