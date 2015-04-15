@@ -186,7 +186,7 @@ Channel.prototype.sendMessageTo = function(member, messageText, cb) {
 
   // The allowedServersPolicy options require that the server matches the
   // blessings we got when we globbed it.
-  var callOpts = this.client_.callOptions({
+  var callOpts = this.client_.callOption({
     allowedServersPolicy: member.blessings
   });
 
