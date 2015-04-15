@@ -73,8 +73,40 @@ A particular directory in the namespace --
 `users/vanadium.bot@gmail.com/apps/chat/public` -- has been created with
 permissions that allow anybody to mount and glob inside that directory.
 
-TODO(nlacasse): Describe permissions set up once permission settings are
-finalized. (See go/vcl/9767)
+The following command sets the `Resolve` permission on
+`users/vanadium.bot@gmail.com` to allow anybody to resolve names inside that
+directory.
+
+    namespace permissions set users/vanadium.bot@gmail.com - << EOF
+    {
+      "Admin":{
+        "In":["dev.v.io/root/users/vanadium.bot@gmail.com"]
+      },
+      "Resolve":{
+        "In":["..."]
+      }
+    }
+    EOF
+
+
+The next command sets the `Read` and `Create` permissions for
+`users/vanadium.bot@gmail.com/apps/chat`, to allow anybody to list the names
+inside that directory, and create a new name in that directory.
+
+    namespace permissions set users/vanadium.bot@gmail.com/apps/chat - << EOF
+    {
+      "Admin":{
+        "In":["dev.v.io/root/users/vanadium.bot@gmail.com"]
+      },
+      "Read":{
+        "In":["..."]
+      },
+      "Create":{
+        "In":["..."]
+      }
+    }
+    EOF
+
 
 When a client joins the chat room, it generates a random string and attempts to
 mount itself in the public [mounttable server][mounttable] under the name

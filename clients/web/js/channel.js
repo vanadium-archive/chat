@@ -13,7 +13,7 @@ var url = require('url');
 var access = require('vanadium/src/gen-vdl/v.io/v23/security/access');
 var naming = require('vanadium').naming;
 var noop = require('./noop');
-var ServiceVdl = require('./chat/vdl');
+var ServiceVdl = require('./v.io/x/chat/vdl');
 var util = require('./util');
 
 // Default channel name. Override by setting "channel" query param in url.

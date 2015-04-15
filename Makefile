@@ -1,32 +1,8 @@
 SHELL := /bin/bash -euo pipefail
-export PATH := node_modules/.bin:clients/shell/go/bin:$(PATH)
+export PATH := $(V23_ROOT)/release/go/bin:node_modules/.bin:$(V23_ROOT)/environment/cout/node/bin:clients/shell/go/bin:$(PATH)
 export GOPATH := $(shell pwd)/clients/shell/go:$(GOPATH)
 export VDLPATH := $(GOPATH)
-
-# Don't use V23_ROOT if NO_V23_ROOT is set.
-# This is equivalent to "V23_ROOT= make ..."
-ifdef NO_V23_ROOT
-  V23_ROOT :=
-endif
-
-# If V23_ROOT is defined, we should compile/build our clients against the
-# code there.  This allows us to test our clients againts the current code, and
-# simplifies debugging.  In order to make this work, we must change our PATHs
-# and go compiler depending on whether V23_ROOT is set.
-ifdef V23_ROOT
-	# Use "v23" go compiler wrapper.
-	GO := v23 go
-	# v23 puts binaries in $(V23_ROOT)/release/go/bin, so add that to the PATH.
-	PATH := $(V23_ROOT)/release/go/bin:$(PATH)
-	# Add location of node and npm from environment repo.
-	export PATH := $(V23_ROOT)/environment/cout/node/bin:$(PATH)
-else
-	# Use standard go compiler.
-	GO := go
-	# The vdl tool needs either V23_ROOT or VDLROOT, so set VDLROOT.
-	export VDLROOT := $(shell pwd)/clients/shell/go/src/v.io/v23/vdlroot
-endif
-
+GO := v23 go
 
 # This target causes any target files to be deleted if the target task fails.
 # This is especially useful for browserify, which creates files even if it
@@ -110,20 +86,15 @@ deploy-staging: build-web-assets
 node_modules: package.json
 	npm prune
 	npm install
-ifdef V23_ROOT
-	# If V23_ROOT is defined, link vanadium from it.
+	# Link Vanadium from V23_ROOT.
 	rm -rf ./node_modules/vanadium
 	cd "$(V23_ROOT)/release/javascript/core" && npm link
 	npm link vanadium
-else
-	# If V23_ROOT is not defined, install veyron.js from github.
-	npm install git+ssh://git@github.com:veyron/veyron.js.git
-endif
 	touch node_modules
 
 # TODO(sadovsky): Make it so we only run "go install" when binaries are out of
 # date.
-vanadium-binaries: clients/shell/go/src/v.io
+vanadium-binaries:
 	$(GO) install \
 	v.io/x/ref/services/mounttable/mounttabled \
 	v.io/x/ref/services/proxy/proxyd \
@@ -133,25 +104,7 @@ gen-vdl: vanadium-binaries
 	vdl generate --lang=go v.io/x/chat/vdl
 	vdl generate --lang=javascript --js-out-dir=clients/web/js v.io/x/chat/vdl
 
-clients/shell/go/src/github.com/fatih/color:
-	$(GO) get github.com/fatih/color
-
-clients/shell/go/src/github.com/kr/text:
-	$(GO) get github.com/kr/text
-
-clients/shell/go/src/github.com/nlacasse/gocui:
-	$(GO) get github.com/nlacasse/gocui
-
-clients/shell/go/src/v.io:
-# Only go get v.io go repo if V23_ROOT is not defined.
-ifndef V23_ROOT
-	$(GO) get v.io/x/ref/...
-endif
-
 clients/shell/go/bin/chat: vanadium-binaries gen-vdl
-clients/shell/go/bin/chat: clients/shell/go/src/github.com/fatih/color
-clients/shell/go/bin/chat: clients/shell/go/src/github.com/kr/text
-clients/shell/go/bin/chat: clients/shell/go/src/github.com/nlacasse/gocui
 clients/shell/go/bin/chat: $(shell find clients/shell/go/src -name "*.go")
 	$(GO) install v.io/x/chat
 
@@ -210,20 +163,8 @@ test-shell: build-shell
 # runner.js. We should restructure things so that runner.js is its own npm
 # package with its own deps.
 test-web: lint build-web
-ifndef V23_ROOT
-	# The js tests needs the extension built into a folder so that it can be
-	# loaded with chrome on startup.  The extension build process currently
-	# depends on v23, the Vanadium "web" profile, and V23_ROOT.
-	#
-	# TODO(nlacasse): Either make the extension build process have less
-	# dependencies, or distribute a version of the extension that can be
-	# unpacked into a directory and used in tests by other projects like chat.
-	@echo "The test-web make task requires V23_ROOT to be set."
-	exit 1
-else
 	node ./node_modules/vanadium/test/integration/runner.js -- \
 	make test-web-runner
-endif
 
 # Note: runner.js sets the V23_NAMESPACE and PROXY_ADDR env vars for the
 # spawned test subprocess; we specify "make test-web-runner" as the test
@@ -239,9 +180,8 @@ test-web-runner:
 
 clean:
 	rm -rf node_modules
-	rm -rf clients/shell/go/{bin,pkg,src/code.google.com,src/github.com,src/golang.org}
+	rm -rf clients/shell/go/{bin,pkg}
 	rm -rf build
-	rm -rf vanadium.js
 
 lint: node_modules
 	jshint .

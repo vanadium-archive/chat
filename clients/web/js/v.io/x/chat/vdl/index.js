@@ -44,7 +44,7 @@ Chat.prototype.sendMessage = function(ctx, text) {
     
 Chat.prototype._serviceDescription = {
   name: 'Chat',
-  pkgPath: 'chat/vdl',
+  pkgPath: 'v.io/x/chat/vdl',
   doc: "",
   embeds: [],
   methods: [
