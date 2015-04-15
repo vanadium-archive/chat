@@ -239,7 +239,7 @@ test-web-runner:
 
 clean:
 	rm -rf node_modules
-	rm -rf clients/shell/go/{bin,pkg,src/code.google.com,src/github.com,src/golang.org,src/v.io}
+	rm -rf clients/shell/go/{bin,pkg,src/code.google.com,src/github.com,src/golang.org}
 	rm -rf build
 	rm -rf vanadium.js
 
