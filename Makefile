@@ -1,6 +1,6 @@
 SHELL := /bin/bash -euo pipefail
-export PATH := node_modules/.bin:clients/shell/bin:$(PATH)
-export GOPATH := $(shell pwd)/clients/shell:$(GOPATH)
+export PATH := node_modules/.bin:clients/shell/go/bin:$(PATH)
+export GOPATH := $(shell pwd)/clients/shell/go:$(GOPATH)
 export VDLPATH := $(GOPATH)
 
 # Don't use V23_ROOT if NO_V23_ROOT is set.
@@ -24,7 +24,7 @@ else
 	# Use standard go compiler.
 	GO := go
 	# The vdl tool needs either V23_ROOT or VDLROOT, so set VDLROOT.
-	export VDLROOT := $(shell pwd)/clients/shell/src/v.io/v23/vdlroot
+	export VDLROOT := $(shell pwd)/clients/shell/go/src/v.io/v23/vdlroot
 endif
 
 
@@ -123,39 +123,39 @@ endif
 
 # TODO(sadovsky): Make it so we only run "go install" when binaries are out of
 # date.
-vanadium-binaries: clients/shell/src/v.io
+vanadium-binaries: clients/shell/go/src/v.io
 	$(GO) install \
 	v.io/x/ref/services/mounttable/mounttabled \
 	v.io/x/ref/services/proxy/proxyd \
 	v.io/x/ref/cmd/{principal,servicerunner,vdl}
 
 gen-vdl: vanadium-binaries
-	vdl generate --lang=go chat/vdl
-	vdl generate --lang=javascript --js-out-dir=clients/web/js chat/vdl
+	vdl generate --lang=go v.io/x/chat/vdl
+	vdl generate --lang=javascript --js-out-dir=clients/web/js v.io/x/chat/vdl
 
-clients/shell/src/github.com/fatih/color:
+clients/shell/go/src/github.com/fatih/color:
 	$(GO) get github.com/fatih/color
 
-clients/shell/src/github.com/kr/text:
+clients/shell/go/src/github.com/kr/text:
 	$(GO) get github.com/kr/text
 
-clients/shell/src/github.com/nlacasse/gocui:
+clients/shell/go/src/github.com/nlacasse/gocui:
 	$(GO) get github.com/nlacasse/gocui
 
-clients/shell/src/v.io:
+clients/shell/go/src/v.io:
 # Only go get v.io go repo if V23_ROOT is not defined.
 ifndef V23_ROOT
 	$(GO) get v.io/x/ref/...
 endif
 
-clients/shell/bin/chat: vanadium-binaries gen-vdl
-clients/shell/bin/chat: clients/shell/src/github.com/fatih/color
-clients/shell/bin/chat: clients/shell/src/github.com/kr/text
-clients/shell/bin/chat: clients/shell/src/github.com/nlacasse/gocui
-clients/shell/bin/chat: $(shell find clients/shell/src -name "*.go")
-	$(GO) install chat
+clients/shell/go/bin/chat: vanadium-binaries gen-vdl
+clients/shell/go/bin/chat: clients/shell/go/src/github.com/fatih/color
+clients/shell/go/bin/chat: clients/shell/go/src/github.com/kr/text
+clients/shell/go/bin/chat: clients/shell/go/src/github.com/nlacasse/gocui
+clients/shell/go/bin/chat: $(shell find clients/shell/go/src -name "*.go")
+	$(GO) install v.io/x/chat
 
-build-shell: vanadium-binaries clients/shell/bin/chat
+build-shell: vanadium-binaries clients/shell/go/bin/chat
 
 mkdir-build:
 	@mkdir -p build
@@ -201,7 +201,7 @@ test-shell: build-shell
 	# will listen on the external IP address of the gce instance, and our
 	# firewall rules prevent connections on unknown ports unless coming from
 	# localhost.
-	$(GO) test chat/... --v23.tcp.address=localhost:0
+	$(GO) test v.io/x/chat/... --v23.tcp.address=localhost:0
 
 # We use the same test runner as vanadium.js.  It handles starting and stopping
 # all required services (proxy, wspr, mounntabled), and runs tests in chrome
@@ -239,7 +239,7 @@ test-web-runner:
 
 clean:
 	rm -rf node_modules
-	rm -rf clients/shell/{bin,pkg,src/code.google.com,src/github.com,src/golang.org,src/v.io}
+	rm -rf clients/shell/go/{bin,pkg,src/code.google.com,src/github.com,src/golang.org,src/v.io}
 	rm -rf build
 	rm -rf vanadium.js
 

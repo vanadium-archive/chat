@@ -101,7 +101,7 @@ var ChatDesc rpc.InterfaceDesc = descChat
 // descChat hides the desc to keep godoc clean.
 var descChat = rpc.InterfaceDesc{
 	Name:    "Chat",
-	PkgPath: "chat/vdl",
+	PkgPath: "v.io/x/chat/vdl",
 	Methods: []rpc.MethodDesc{
 		{
 			Name: "SendMessage",

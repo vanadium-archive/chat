@@ -14,7 +14,6 @@ import (
 	"v.io/v23"
 	"v.io/v23/context"
 	"v.io/v23/options"
-
 	"v.io/x/ref/services/mounttable/mounttablelib"
 	"v.io/x/ref/test"
 	"v.io/x/ref/test/modules"
