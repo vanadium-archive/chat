@@ -45,7 +45,7 @@ func (c implChatClientStub) SendMessage(ctx *context.T, i0 string, opts ...rpc.C
 // implements for Chat.
 type ChatServerMethods interface {
 	// SendMessage sends a message to a user.
-	SendMessage(call rpc.ServerCall, text string) error
+	SendMessage(ctx *context.T, call rpc.ServerCall, text string) error
 }
 
 // ChatServerStubMethods is the server interface containing
@@ -83,8 +83,8 @@ type implChatServerStub struct {
 	gs   *rpc.GlobState
 }
 
-func (s implChatServerStub) SendMessage(call rpc.ServerCall, i0 string) error {
-	return s.impl.SendMessage(call, i0)
+func (s implChatServerStub) SendMessage(ctx *context.T, call rpc.ServerCall, i0 string) error {
+	return s.impl.SendMessage(ctx, call, i0)
 }
 
 func (s implChatServerStub) Globber() *rpc.GlobState {
