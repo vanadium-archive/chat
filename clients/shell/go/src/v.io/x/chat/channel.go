@@ -113,7 +113,7 @@ type channel struct {
 
 func newChannel(ctx *context.T, mounttable, proxy, path string) (*channel, error) {
 	// Set the namespace root to the mounttable passed on the command line.
-	newCtx, _, err := v23.SetNewNamespace(ctx, mounttable)
+	newCtx, _, err := v23.WithNewNamespace(ctx, mounttable)
 	if err != nil {
 		return nil, err
 	}
