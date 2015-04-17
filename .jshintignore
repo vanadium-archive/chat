@@ -1,3 +1,4 @@
 build
 node_modules
 clients/web/js/v.io/x/chat/vdl
+clients/web/js/chat/vdl
