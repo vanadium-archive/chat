@@ -67,8 +67,8 @@ func newChatServerMethods(messages chan<- message) *chatServerMethods {
 }
 
 // SendMessage is called by clients to send a message to the server.
-func (cs *chatServerMethods) SendMessage(ctx *context.T, _ rpc.ServerCall, IncomingMessage string) error {
-	remoteb, _ := security.RemoteBlessingNames(ctx)
+func (cs *chatServerMethods) SendMessage(ctx *context.T, call rpc.ServerCall, IncomingMessage string) error {
+	remoteb, _ := security.RemoteBlessingNames(ctx, call.Security())
 	cs.messages <- message{
 		SenderName: firstShortName(remoteb),
 		Text:       IncomingMessage,
@@ -136,7 +136,7 @@ func newChannel(ctx *context.T, mounttable, proxy, path string) (*channel, error
 // openAuthorizer allows RPCs from all clients.
 type openAuthorizer struct{}
 
-func (o openAuthorizer) Authorize(*context.T) error {
+func (o openAuthorizer) Authorize(*context.T, security.Call) error {
 	return nil
 }
 
