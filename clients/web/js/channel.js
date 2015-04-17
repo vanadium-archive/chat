@@ -76,16 +76,17 @@ Channel.prototype.join = function(cb) {
 
   // The implementation of sendMessage emits the message with the sender's
   // name and timestamp.
-  Service.prototype.sendMessage = function(ctx, text) {
+  Service.prototype.sendMessage = function(ctx, serverCall, text) {
+    var secCall = serverCall.securityCall;
     that.emit('message', {
-      sender: util.firstShortName(ctx.remoteBlessingStrings),
+      sender: util.firstShortName(secCall.remoteBlessingStrings),
       text: text,
       timestamp: new Date()
     });
   };
 
   // openAuthorizer allows RPCs from all clients.
-  var openAuthorizer = function(secCall, cb){ cb(null); };
+  var openAuthorizer = function(ctx, secCall, cb){ cb(null); };
   var options = {authorizer: openAuthorizer};
 
   var that = this;
