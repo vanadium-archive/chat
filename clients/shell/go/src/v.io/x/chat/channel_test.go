@@ -30,7 +30,7 @@ func rootMT(stdin io.Reader, stdout, stderr io.Writer, env map[string]string, ar
 	if err != nil {
 		return fmt.Errorf("root failed: %v", err)
 	}
-	mt, err := mounttablelib.NewMountTableDispatcher("", "mounttable")
+	mt, err := mounttablelib.NewMountTableDispatcher("", "", "mounttable")
 	if err != nil {
 		return fmt.Errorf("mounttable.NewMountTableDispatcher failed: %s", err)
 	}
