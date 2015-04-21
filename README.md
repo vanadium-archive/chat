@@ -37,9 +37,6 @@ In order to install the shell client, please do the following:
   You may be prompted for a password, and may have to select blessing caveats
   in your web browser.
 
-  TODO(nlacasse): Is there a better way to get the agent that does not require
-  $V23_ROOT ?
-
 3. Run the chat binary.
 
         ./clients/shell/go/bin/chat
@@ -62,8 +59,8 @@ The chat application relies on servers for three things:
 1. Chat clients mount themselves on a [mounttable server][mounttable], so that
    peers can find them.
 
-2. All RPCs are routed through a [Vanadium proxy][proxy], which allows
-   connections to peers who might be behing a NAT.
+2. All RPCs are routed through a Vanadium proxy, which allows connections to
+   peers who might be behing a NAT.
 
 3. A web server is used to serve web assets to chat clients.
 
@@ -226,7 +223,6 @@ will need to get an identity from the identity server:
     $V23_ROOT/release/go/bin/principal seekblessings
 
 Then run the binary and pass in the v23.namespace.root and v23.proxy flags.
-TODO(nlacasse): Update the flag names when they change.
 
     ./clients/shell/bin/chat --mounttable=/localhost:8101 --proxy=proxy
 
@@ -253,18 +249,17 @@ front-end servers. Currently all static content is protected by OAuth. For
 more details on the deployment infrastructure see [this doc][deploy] and the
 [infrastructure] repository.
 
-[blessings]: TODO(nlacasse)
+[blessings]: https://v.io/glossary.html#blessing
 [client-shell]: #client-shell
 [client-web]: #client-web
 [deploy]: http://goo.gl/QfD4gl
 [gocui]: https://github.com/jroimartin/gocui
 [infrastructure]: https://vanadium.googlesource.com/infrastructure/+/master/nginx/README.md
 [issue-tracker]: https://github.com/vanadium/chat/issues
-[mounttable]: TODO(nlacasse)
-[proxy]: TODO(nlacasse)
+[mounttable]: https://v.io/glossary.html#mount-table
 [react]: http://facebook.github.io/react/
 [spa]: http://en.wikipedia.org/wiki/Single-page_application
 [vanadium-extension]: https://chrome.google.com/webstore/detail/vanadium-extension/jcaelnibllfoobpedofhlaobfcoknpap
 [vanadium-install]: https://staging.v.io/installation/
 [vanadium-home]: https://staging.v.io/
-[vdl]: TODO(nlacasse)
+[vdl]: https://v.io/glossary.html#vandium-definition-language-vdl-
