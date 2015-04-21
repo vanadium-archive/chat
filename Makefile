@@ -95,10 +95,11 @@ node_modules: package.json
 # TODO(sadovsky): Make it so we only run "go install" when binaries are out of
 # date.
 vanadium-binaries:
+	$(GO) install -a -tags wspr v.io/x/ref/cmd/servicerunner
 	$(GO) install \
 	v.io/x/ref/services/mounttable/mounttabled \
 	v.io/x/ref/services/proxy/proxyd \
-	v.io/x/ref/cmd/{principal,servicerunner,vdl}
+	v.io/x/ref/cmd/{principal,vdl}
 
 gen-vdl: vanadium-binaries
 	vdl generate --lang=go v.io/x/chat/vdl
