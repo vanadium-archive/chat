@@ -133,13 +133,6 @@ func newChannel(ctx *context.T, mounttable, proxy, path string) (*channel, error
 	}, nil
 }
 
-// openAuthorizer allows RPCs from all clients.
-type openAuthorizer struct{}
-
-func (o openAuthorizer) Authorize(*context.T, security.Call) error {
-	return nil
-}
-
 // UserName returns a short, human-friendly representation of the chat client.
 func (cr *channel) UserName() string {
 	// TODO(ashankar): It is wrong to assume that
@@ -226,7 +219,7 @@ func (cr *channel) join() error {
 
 	// Serve the chat server on the locked name.
 	serverChat := vdl.ChatServer(cr.chatServerMethods)
-	if err := s.Serve(name, serverChat, openAuthorizer{}); err != nil {
+	if err := s.Serve(name, serverChat, security.AllowEveryone()); err != nil {
 		return err
 	}
 
