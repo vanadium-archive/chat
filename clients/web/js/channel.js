@@ -10,7 +10,7 @@ var inherits = require('inherits');
 var path = require('path');
 var url = require('url');
 
-var access = require('vanadium/src/gen-vdl/v.io/v23/security/access');
+var access = require('vanadium/src/security/access');
 var naming = require('vanadium').naming;
 var noop = require('./noop');
 var ServiceVdl = require('./v.io/x/chat/vdl');
@@ -85,9 +85,8 @@ Channel.prototype.join = function(cb) {
     });
   };
 
-  // openAuthorizer allows RPCs from all clients.
-  var openAuthorizer = function(ctx, secCall, cb){ cb(null); };
-  var options = {authorizer: openAuthorizer};
+  // allowEveryoneAuthorizer allows RPCs from all clients.
+  var options = {authorizer: access.allowEveryoneAuthorizer()};
 
   var that = this;
 

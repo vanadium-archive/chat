@@ -32,11 +32,11 @@ module.exports = {};
   
     
 function Chat(){}
-module.exports.Chat = Chat
+module.exports.Chat = Chat;
 
     
       
-Chat.prototype.sendMessage = function(ctx, text) {
+Chat.prototype.sendMessage = function(ctx, serverCall, text) {
   throw new Error('Method SendMessage not implemented');
 };
      
@@ -56,7 +56,7 @@ Chat.prototype._serviceDescription = {
     inArgs: [{
       name: 'text',
       doc: "",
-      type: vdl.Types.STRING
+      type: vdl.types.STRING
     },
     ],
     outArgs: [],
