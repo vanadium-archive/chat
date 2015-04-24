@@ -77,11 +77,13 @@ BROWSER_OPTS := --browser --launch chrome $(HEADLESS) --log=./tmp/chrome.log
 .PHONY: all
 all: build-shell build-web
 
+.PHONY: deploy-production
+deploy-production: build-web-assets
+	make -C $(V23_ROOT)/infrastructure/deploy chat-production
+
 .PHONY: deploy-staging
 deploy-staging: build-web-assets
-	git rev-parse --verify HEAD >> build/version
-	gcloud config set project vanadium-staging
-	gsutil -m rsync -d -r build gs://chat.staging.v.io
+	make -C $(V23_ROOT)/infrastructure/deploy chat-staging
 
 node_modules: package.json
 	npm prune
