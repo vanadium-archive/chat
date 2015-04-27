@@ -230,31 +230,10 @@ There is a simple suite of tests for the shell client in
 `clients/shell/src/channel_test.go`.  You can run these tests with `make
 test-shell`.
 
-## Deployment
-
-If you do not have access to the vanadium-staging GCE account ping
-jasoncampbell@. Once you have access you will need to login to the account via
-the command line.
-
-    gcloud auth login
-
-To deploy the site to https://staging.chat.v.io use the make target
-`deploy-staging`.
-
-    make deploy-staging
-
-This will sync the build directory to the private Google Storage bucket
-`gs://staging.chat.v.io` which gets automatically updated to the nginx
-front-end servers. Currently all static content is protected by OAuth. For
-more details on the deployment infrastructure see [this doc][deploy] and the
-[infrastructure] repository.
-
 [blessings]: https://v.io/glossary.html#blessing
 [client-shell]: #client-shell
 [client-web]: #client-web
-[deploy]: http://goo.gl/QfD4gl
 [gocui]: https://github.com/jroimartin/gocui
-[infrastructure]: https://vanadium.googlesource.com/infrastructure/+/master/nginx/README.md
 [issue-tracker]: https://github.com/vanadium/chat/issues
 [mounttable]: https://v.io/glossary.html#mount-table
 [react]: http://facebook.github.io/react/
