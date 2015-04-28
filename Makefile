@@ -12,7 +12,7 @@ GO := v23 go
 # Default browserify options: use sourcemaps.
 BROWSERIFY_OPTS := --debug
 # Names that should not be mangled by minification.
-RESERVED_NAMES := 'context,ctx,callback,cb,$$stream'
+RESERVED_NAMES := 'context,ctx,callback,cb,$$stream,serverCall'
 # Don't mangle RESERVED_NAMES, and screw ie8.
 MANGLE_OPTS := --mangle [--except $(RESERVED_NAMES) --screw_ie8 ]
 # Don't remove unused variables from function arguments, which could mess up signatures.
