@@ -1,6 +1,8 @@
 /build
+/clients/shell/credentials
 /clients/shell/go/bin
 /clients/shell/go/pkg
 /node_modules
 /tmp
 /.v23
+

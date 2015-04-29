@@ -101,7 +101,8 @@ vanadium-binaries:
 	$(GO) install \
 	v.io/x/ref/services/mounttable/mounttabled \
 	v.io/x/ref/services/proxy/proxyd \
-	v.io/x/ref/cmd/{principal,vdl}
+	v.io/x/ref/cmd/{principal,vdl} \
+	v.io/x/ref/services/agent/agentd
 
 gen-vdl: vanadium-binaries
 	vdl generate --lang=go v.io/x/chat/vdl
@@ -112,6 +113,9 @@ clients/shell/go/bin/chat: $(shell find clients/shell/go/src -name "*.go")
 	$(GO) install v.io/x/chat
 
 build-shell: vanadium-binaries clients/shell/go/bin/chat
+
+run-shell: build-shell
+	clients/shell/run.sh
 
 mkdir-build:
 	@mkdir -p build
@@ -184,6 +188,7 @@ test-web-runner:
 clean:
 	rm -rf node_modules
 	rm -rf clients/shell/go/{bin,pkg}
+	rm -rf clients/shell/credentials
 	rm -rf build
 
 lint: node_modules

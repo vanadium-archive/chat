@@ -23,24 +23,21 @@ Please file bugs and feature requests in our [issue tracker][issue-tracker].
 These instructions assume you have an up-to-date [Vanadium development
 environment][vanadium-installation] inside `$V23_ROOT`.
 
-In order to install the shell client, please do the following:
+In order to run the shell client:
 
-1. Build the chat binary.
+    cd $V23_ROOT/release/projects/chat
+    make run-shell
 
-        cd $V23_ROOT/release/projects/chat
-        make build-shell
+This will generate Vanadium credentials (a new principal and a blessing) the
+first time it is run, which may prompt you for your Google Account password and
+caveats on the blessing in your web browser. You will also be prompted to
+select a password for encrypting the credentials on local disk. This is
+optional.
 
-2. Start the Vanadium Security Agent
+If you'd only like to build the binary, not run it:
 
-        $V23_ROOT/release/go/src/v.io/x/ref/cmd/vbash
-
-  You may be prompted for a password, and may have to select blessing caveats
-  in your web browser.
-
-3. Run the chat binary.
-
-        ./clients/shell/go/bin/chat
-
+    cd $V23_ROOT/release/projects/chat
+    make build-shell
 
 <a name="architecture"></a>
 ## Chat architecture
