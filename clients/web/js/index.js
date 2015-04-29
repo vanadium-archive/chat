@@ -23,7 +23,7 @@ window.page = page;
 
 vanadium.init(vanadiumConfig, function(err, rt) {
   if (err) {
-    if (err instanceof vanadium.errors.ExtensionNotInstalledError) {
+    if (err instanceof vanadium.verror.ExtensionNotInstalledError) {
       return vanadium.extension.promptUserToInstallExtension();
     }
     return displayError(err);
