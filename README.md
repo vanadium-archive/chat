@@ -15,7 +15,7 @@ Please file bugs and feature requests in our [issue tracker][issue-tracker].
 
 1. Install the [Vanadium Chrome Extension][vanadium-extension].
 
-2. Visit the chat webpage: <https://staging.chat.v.io/>
+2. Visit the chat webpage: <https://chat.v.io/>
 
 <a name="client-shell"></a>
 ### Running the shell client
@@ -236,6 +236,6 @@ test-shell`.
 [react]: http://facebook.github.io/react/
 [spa]: http://en.wikipedia.org/wiki/Single-page_application
 [vanadium-extension]: https://chrome.google.com/webstore/detail/vanadium-extension/jcaelnibllfoobpedofhlaobfcoknpap
-[vanadium-install]: https://staging.v.io/installation/
-[vanadium-home]: https://staging.v.io/
+[vanadium-install]: https://v.io/installation/
+[vanadium-home]: https://v.io/
 [vdl]: https://v.io/glossary.html#vandium-definition-language-vdl-
