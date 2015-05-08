@@ -42,7 +42,7 @@ import (
 	"v.io/v23/security/access"
 	mt "v.io/v23/services/mounttable"
 	"v.io/x/chat/vdl"
-	_ "v.io/x/ref/profiles/roaming"
+	_ "v.io/x/ref/runtime/factories/roaming"
 )
 
 // message is a message that will be displayed in the UI.
