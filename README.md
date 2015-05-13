@@ -74,7 +74,7 @@ directory.
     namespace permissions set users/vanadium.bot@gmail.com - << EOF
     {
       "Admin":{
-        "In":["dev.v.io/root/users/vanadium.bot@gmail.com"]
+        "In":["dev.v.io/u/vanadium.bot@gmail.com"]
       },
       "Resolve":{
         "In":["..."]
@@ -90,7 +90,7 @@ inside that directory, and create a new name in that directory.
     namespace permissions set users/vanadium.bot@gmail.com/apps/chat - << EOF
     {
       "Admin":{
-        "In":["dev.v.io/root/users/vanadium.bot@gmail.com"]
+        "In":["dev.v.io/u/vanadium.bot@gmail.com"]
       },
       "Read":{
         "In":["..."]
