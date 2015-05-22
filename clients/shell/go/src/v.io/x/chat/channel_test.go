@@ -6,7 +6,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"testing"
 	"time"
@@ -21,7 +20,7 @@ import (
 
 //go:generate v23 test generate
 
-func rootMT(stdin io.Reader, stdout, stderr io.Writer, env map[string]string, args ...string) error {
+var rootMT = modules.Register(func(env *modules.Env, args ...string) error {
 	ctx, shutdown := v23.Init()
 	defer shutdown()
 
@@ -41,13 +40,13 @@ func rootMT(stdin io.Reader, stdout, stderr io.Writer, env map[string]string, ar
 	if err := server.ServeDispatcher("", mt); err != nil {
 		return fmt.Errorf("root failed: %s", err)
 	}
-	fmt.Fprintf(stdout, "PID=%d\n", os.Getpid())
+	fmt.Fprintf(env.Stdout, "PID=%d\n", os.Getpid())
 	for _, ep := range eps {
-		fmt.Fprintf(stdout, "MT_NAME=%s\n", ep.Name())
+		fmt.Fprintf(env.Stdout, "MT_NAME=%s\n", ep.Name())
 	}
-	modules.WaitForEOF(stdin)
+	modules.WaitForEOF(env.Stdin)
 	return nil
-}
+}, "rootMT")
 
 // Starts a mounttable.  Returns the name and a stop function.
 func startMountTable(t *testing.T, ctx *context.T) (string, func()) {
@@ -56,16 +55,16 @@ func startMountTable(t *testing.T, ctx *context.T) (string, func()) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	rootMT, err := sh.Start("rootMT", nil, "--v23.tcp.address=127.0.0.1:0")
+	mt, err := sh.Start(nil, rootMT, "--v23.tcp.address=127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("failed to start root mount table: %s", err)
 	}
-	rootMT.ExpectVar("PID")
-	rootName := rootMT.ExpectVar("MT_NAME")
+	mt.ExpectVar("PID")
+	rootName := mt.ExpectVar("MT_NAME")
 
 	return rootName, func() {
 		if err := sh.Cleanup(nil, nil); err != nil {
-			t.Fatalf("failed to cleanup shell: %s", rootMT.Error())
+			t.Fatalf("failed to cleanup shell: %s", mt.Error())
 		}
 	}
 }
@@ -108,7 +107,7 @@ func TestMembers(t *testing.T) {
 	// Create a new channel.
 	channel, err := newChannel(ctx, mounttable, proxy, path)
 	if err != nil {
-		t.Fatal("newChannel(%v, %v, %v) failed: %v", ctx, mounttable, proxy, path)
+		t.Fatalf("newChannel(%v, %v, %v, %v) failed: %v", ctx, mounttable, proxy, path, err)
 	}
 
 	// New channel should be empty.
@@ -129,7 +128,7 @@ func TestMembers(t *testing.T) {
 	// Create and join the channel a second time.
 	channel2, err := newChannel(ctx, mounttable, proxy, path)
 	if err != nil {
-		t.Fatal("newChannel(%v, %v, %v) failed: %v", ctx, mounttable, proxy, path)
+		t.Fatalf("newChannel(%v, %v, %v, %v) failed: %v", ctx, mounttable, proxy, path, err)
 	}
 	if err := channel2.join(); err != nil {
 		t.Fatalf("channel2.join() failed: %v", err)
@@ -174,7 +173,7 @@ func TestBroadcastMessage(t *testing.T) {
 
 	channel, err := newChannel(ctx, mounttable, proxy, path)
 	if err != nil {
-		t.Fatalf("newChannel(%v, %v, %v) failed: %v", ctx, mounttable, proxy, path, err)
+		t.Fatalf("newChannel(%v, %v, %v, %v) failed: %v", ctx, mounttable, proxy, path, err)
 	}
 
 	defer channel.leave()
