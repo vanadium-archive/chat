@@ -94,7 +94,7 @@ func AssertMembersWithNames(channel *channel, expectedNames []string) error {
 }
 
 func TestMembers(t *testing.T) {
-	ctx, shutdown := test.InitForTest()
+	ctx, shutdown := test.V23Init()
 	defer shutdown()
 
 	mounttable, stopMountTable := startMountTable(t, ctx)
@@ -161,7 +161,7 @@ func TestMembers(t *testing.T) {
 }
 
 func TestBroadcastMessage(t *testing.T) {
-	ctx, shutdown := test.InitForTest()
+	ctx, shutdown := test.V23Init()
 	defer shutdown()
 
 	mounttable, stopMountTable := startMountTable(t, ctx)
