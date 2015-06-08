@@ -18,16 +18,21 @@ MANGLE_OPTS := --mangle [--except $(RESERVED_NAMES) --screw_ie8 ]
 # Don't remove unused variables from function arguments, which could mess up signatures.
 # Also don't evaulate constant expressions, since we rely on them to conditionally require modules only in node.
 COMPRESS_OPTS := --compress [ --no-unused --no-evaluate ]
+# Work-around for Browserify opening too many files by increasing the limit on file descriptors.
+# https://github.com/substack/node-browserify/issues/431
+INCREASE_FILE_DESC = ulimit -S -n 2560
 
 # Browserify and extract sourcemap, but do not minify.
 define BROWSERIFY
 	mkdir -p $(dir $2)
+	$(INCREASE_FILE_DESC); \
 	browserify $1 $(BROWSERIFY_OPTS) | exorcist $2.map > $2
 endef
 
 # Browserify, minify, and extract sourcemap.
 define BROWSERIFY-MIN
 	mkdir -p $(dir $2)
+	$(INCREASE_FILE_DESC); \
 	browserify $1 $(BROWSERIFY_OPTS) --g [ uglifyify $(MANGLE_OPTS) $(COMPRESS_OPTS) ] | exorcist $2.map > $2
 endef
 
