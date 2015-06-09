@@ -1,7 +1,7 @@
 SHELL := /bin/bash -euo pipefail
 export PATH := $(V23_ROOT)/release/go/bin:node_modules/.bin:$(V23_ROOT)/third_party/cout/node/bin:clients/shell/go/bin:$(PATH)
 export GOPATH := $(shell pwd)/clients/shell/go:$(GOPATH)
-export VDLPATH := $(GOPATH)
+export VDLPATH := $(shell pwd)/clients/shell/go/src:$(V23_ROOT)/release/go/src
 GO := v23 go
 
 # This target causes any target files to be deleted if the target task fails.
