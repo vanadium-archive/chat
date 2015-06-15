@@ -2,7 +2,8 @@
 /clients/shell/credentials
 /clients/shell/go/bin
 /clients/shell/go/pkg
+/clients/web/test/ui/target
+/htmlReports
 /node_modules
 /tmp
 /.v23
-

@@ -190,11 +190,55 @@ test-web-runner:
 	$(MAKE) -C $(VANADIUM_JS)/extension build-test
 	prova clients/web/test/test-*.js -f $(APP_FRAME) $(PROVA_OPTS) $(BROWSER_OPTS) $(BROWSER_OUTPUT_LOCAL)
 
+
+# Run UI tests for the chat web client.
+# These tests do not normally need to be run locally, but they can be if you
+# want to verify that the a specific version of chat is compatible with a
+# local (or live) version of the Vanadium extension.
+#
+# This test takes additional environment variables (typically temporary)
+# - GOOGLE_BOT_USERNAME and GOOGLE_BOT_PASSWORD (To sign into Google/Chrome)
+# - CHROME_WEBDRIVER (The path to the chrome web driver)
+# - WORKSPACE (optional, defaults to $V23_ROOT/release/projects/chat)
+# - TEST_URL (optional, defaults to https://chat.staging.v.io)
+# - NO_XVFB (optional, defaults to using Xvfb. Set to true to watch the test.)
+# - BUILD_EXTENSION (optional, defaults to using the live one. Set to true to
+#                    use a local build of the Vanadium extension.)
+#
+# In addition, this test requires that maven, Xvfb, and xvfb-run be installed.
+# The HTML report will be in $V23_ROOT/release/projects/chat/htmlReports
+WORKSPACE ?= $(V23_ROOT)/release/projects/chat
+TEST_URL ?= https://chat.staging.v.io
+ifndef NO_XVFB
+	XVFB := TMPDIR=/tmp xvfb-run -s '-ac -screen 0 1024x768x24'
+endif
+
+ifdef BUILD_EXTENSION
+	BUILD_EXTENSION_PROPERTY := "-DvanadiumExtensionPath=$(VANADIUM_JS)/extension/build"
+endif
+
+test-ui:
+ifdef BUILD_EXTENSION
+	make -B -C $(VANADIUM_JS)/extension build-dev
+endif
+	WORKSPACE=$(WORKSPACE) $(XVFB) \
+	  mvn test \
+	  -f=$(V23_ROOT)/release/projects/chat/clients/web/test/ui/pom.xml \
+	  -Dtest=ChatUITest \
+	  -DchromeDriverBin=$(CHROME_WEBDRIVER) \
+	  -DhtmlReportsRelativePath=htmlReports \
+	  -DgoogleBotUsername=$(GOOGLE_BOT_USERNAME) \
+	  -DgoogleBotPassword=$(GOOGLE_BOT_PASSWORD) \
+	  $(BUILD_EXTENSION_PROPERTY) \
+	  -DtestUrl=$(TEST_URL)
+
 clean:
-	rm -rf node_modules
+	rm -rf build
 	rm -rf clients/shell/go/{bin,pkg}
 	rm -rf clients/shell/credentials
-	rm -rf build
+	rm -rf clients/web/test/ui/target
+	rm -rf htmlReports
+	rm -rf node_modules
 
 lint: node_modules
 	jshint .
