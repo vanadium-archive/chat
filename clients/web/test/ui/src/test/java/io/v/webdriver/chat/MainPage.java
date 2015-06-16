@@ -33,6 +33,10 @@ import java.util.Set;
  * @author alexfandrianto@google.com
  */
 public class MainPage extends PageBase {
+  /**
+   * Default timeout for each Vanadium chat message.
+   */
+  protected static final int CHAT_TIMEOUT = 20;
 
   /**
    * The google username is set when this page is constructed.
@@ -162,7 +166,7 @@ public class MainPage extends PageBase {
     // Now, wait until the text shows up on screen!
     CheckMessage messageChecker = new CheckMessage(username, message);
     try {
-      wait.until(messageChecker);
+      new WebDriverWait(driver, CHAT_TIMEOUT).until(messageChecker);
     } catch(TimeoutException e) {
       e.printStackTrace();
       Assert.fail(e.toString());
