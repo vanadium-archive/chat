@@ -42,6 +42,7 @@ import (
 	"v.io/v23/security/access"
 	mt "v.io/v23/services/mounttable"
 	"v.io/x/chat/vdl"
+	"v.io/x/ref/lib/xrpc"
 	_ "v.io/x/ref/runtime/factories/roaming"
 )
 
@@ -104,7 +105,7 @@ type channel struct {
 	// The implementation of the chat server.
 	chatServerMethods *chatServerMethods
 	// The chat server.
-	server rpc.Server
+	server *xrpc.Server
 	// Channel that emits incoming messages.
 	messages chan message
 	// Cached list of channel members.
@@ -200,32 +201,17 @@ func (cr *channel) getLockedName() (string, error) {
 
 // join starts a chat server and mounts it in the channel path.
 func (cr *channel) join() error {
-	// Create a new server.
-	s, err := v23.NewServer(cr.ctx)
-	if err != nil {
-		return err
-	}
-
-	// Start listening for incoming connections.
-	if _, err := s.Listen(v23.GetListenSpec(cr.ctx)); err != nil {
-		return err
-	}
-
 	// Get a locked name in the mounttable that we can mount our server on.
 	name, err := cr.getLockedName()
 	if err != nil {
 		return err
 	}
-
 	// Serve the chat server on the locked name.
 	serverChat := vdl.ChatServer(cr.chatServerMethods)
-	if err := s.Serve(name, serverChat, security.AllowEveryone()); err != nil {
-		return err
-	}
 
-	cr.server = s
-
-	return nil
+	// Create a new server.
+	cr.server, err = xrpc.NewServer(cr.ctx, name, serverChat, security.AllowEveryone())
+	return err
 }
 
 // leave stops the chat server and removes our mounted name from the

@@ -14,6 +14,7 @@ import (
 	"v.io/v23/context"
 	"v.io/v23/options"
 
+	"v.io/x/ref/lib/xrpc"
 	"v.io/x/ref/services/mounttable/mounttablelib"
 	"v.io/x/ref/test"
 	"v.io/x/ref/test/modules"
@@ -25,24 +26,16 @@ var rootMT = modules.Register(func(env *modules.Env, args ...string) error {
 	ctx, shutdown := v23.Init()
 	defer shutdown()
 
-	lspec := v23.GetListenSpec(ctx)
-	server, err := v23.NewServer(ctx, options.ServesMountTable(true))
-	if err != nil {
-		return fmt.Errorf("root failed: %v", err)
-	}
 	mt, err := mounttablelib.NewMountTableDispatcher("", "", "mounttable")
 	if err != nil {
 		return fmt.Errorf("mounttable.NewMountTableDispatcher failed: %s", err)
 	}
-	eps, err := server.Listen(lspec)
+	server, err := xrpc.NewDispatchingServer(ctx, "", mt, options.ServesMountTable(true))
 	if err != nil {
-		return fmt.Errorf("server.Listen failed: %s", err)
-	}
-	if err := server.ServeDispatcher("", mt); err != nil {
-		return fmt.Errorf("root failed: %s", err)
+		return fmt.Errorf("root failed: %v", err)
 	}
 	fmt.Fprintf(env.Stdout, "PID=%d\n", os.Getpid())
-	for _, ep := range eps {
+	for _, ep := range server.Status().Endpoints {
 		fmt.Fprintf(env.Stdout, "MT_NAME=%s\n", ep.Name())
 	}
 	modules.WaitForEOF(env.Stdin)
