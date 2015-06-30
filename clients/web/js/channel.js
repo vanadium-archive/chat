@@ -52,6 +52,7 @@ function Channel(rt) {
   this.client_ = rt.newClient();
   this.server_ = rt.newServer();
 
+  this.globbing_ = false;
   this.ready_ = false;
   this.members_ = [];
   this.intervalID_ = null;
@@ -230,12 +231,18 @@ Channel.prototype.broadcastMessage = function(messageText, cb) {
 Channel.prototype.updateMembers_ = function() {
   var that = this;
 
+  // If we are already globbing, then do nothing.
+  if (this.globbing_) {
+    return;
+  }
+  this.globbing_ = true;
+
   // We glob on the channel name to find all the members in our channel.  The
   // glob will return a stream of mount entries corresponding to the paths where
   // channel members are mounted.  Then, we get the remote blessings from each
   // member, and use those as the member names.
 
-  var ctx = this.context_.withTimeout(1000);
+  var ctx = this.context_.withTimeout(5000);
   var pattern = path.join(this.channelName_, '*');
 
   // Start the glob rpc.  This returns a promise with a "stream" property.
@@ -269,6 +276,7 @@ Channel.prototype.updateMembers_ = function() {
   globStream.on('end', done);
 
   function done(err) {
+    that.globbing_ = false;
     if (err) {
       console.error(err);
     }
