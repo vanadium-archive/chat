@@ -105,7 +105,7 @@ type channel struct {
 	// The implementation of the chat server.
 	chatServerMethods *chatServerMethods
 	// The chat server.
-	server *xrpc.Server
+	server rpc.XServer
 	// Channel that emits incoming messages.
 	messages chan message
 	// Cached list of channel members.
