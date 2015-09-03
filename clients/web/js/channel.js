@@ -64,6 +64,7 @@ inherits(Channel, EventEmitter);
 // random "locked" name.
 Channel.prototype.join = function(cb) {
   cb = cb || noop;
+  var that = this;
 
   // Create our service implementation, which defines a single method:
   // "SendMessage".  We inherit from ServiceVdl.Chat which causes our defined
@@ -88,8 +89,6 @@ Channel.prototype.join = function(cb) {
 
   // allowEveryoneAuthorizer allows RPCs from all clients.
   var options = {authorizer: access.allowEveryoneAuthorizer()};
-
-  var that = this;
 
   // Get a locked name to mount under.
   this.getLockedName_(function(err, name) {
