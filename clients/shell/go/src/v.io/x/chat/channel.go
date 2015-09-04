@@ -42,7 +42,6 @@ import (
 	"v.io/v23/security/access"
 	mt "v.io/v23/services/mounttable"
 	"v.io/x/chat/vdl"
-	"v.io/x/ref/lib/xrpc"
 	_ "v.io/x/ref/runtime/factories/roaming"
 )
 
@@ -210,7 +209,7 @@ func (cr *channel) join() error {
 	serverChat := vdl.ChatServer(cr.chatServerMethods)
 
 	// Create a new server.
-	cr.server, err = xrpc.NewServer(cr.ctx, name, serverChat, security.AllowEveryone())
+	_, cr.server, err = v23.WithNewServer(cr.ctx, name, serverChat, security.AllowEveryone())
 	return err
 }
 
