@@ -47,10 +47,11 @@ function Channel(rt) {
   this.channelName_ = u.query.channel || DEFAULT_CHANNNEL;
 
   this.accountName_ = rt.accountName;
-  this.namespace_ = rt.namespace();
+  this.namespace_ = rt.getNamespace();
   this.context_ = rt.getContext();
-  this.client_ = rt.newClient();
-  this.server_ = rt.newServer();
+  this.client_ = rt.getClient();
+  this.rt_ = rt;
+  this.server_ = null;
 
   this.globbing_ = false;
   this.ready_ = false;
@@ -98,10 +99,11 @@ Channel.prototype.join = function(cb) {
 
     that.mountedName_ = name;
 
-    // Serve the chat service under the locked name.
-    // Note, serve() performs the mount() for us.
-    that.server_.serve(name, new Service(), options, function(err) {
+    // Create a new chat server under the locked name.
+    // Note, newServer() performs the mount() for us.
+    that.rt_.newServer(name, new Service(), options, function(err, server) {
       if (err) return cb(err);
+      that.server_ = server;
       that.updateMembers_();
       that.intervalID_ = setInterval(that.updateMembers_.bind(that), 2000);
       return cb();
@@ -177,7 +179,9 @@ Channel.prototype.leave = function(cb) {
   }
 
   // Stop the server.
-  this.server_.stop(cb);
+  if (this.server_) {
+    this.server_.stop(cb);
+  }
 };
 
 // sendMessageTo sends a message to a particular member.
