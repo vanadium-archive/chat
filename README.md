@@ -1,7 +1,7 @@
 # Vanadium Chat
 
 Vanadium Chat is a peer-to-peer chat application that demonstrates common usage
-patterns for the [Vanadium][vanadium-home] libraries.
+patterns for the Vanadium libraries.
 
 There are currently two clients: a [web client][client-web] and a [shell
 client][client-shell].
@@ -227,15 +227,14 @@ There is a simple suite of tests for the shell client in
 `clients/shell/src/channel_test.go`.  You can run these tests with `make
 test-shell`.
 
-[blessings]: https://v.io/glossary.html#blessing
+[blessings]: https://github.com/vanadium/docs/blob/master/glossary.md#blessing
 [client-shell]: #client-shell
 [client-web]: #client-web
 [gocui]: https://github.com/jroimartin/gocui
 [issue-tracker]: https://github.com/vanadium/chat/issues
-[mounttable]: https://v.io/glossary.html#mount-table
+[mounttable]: https://github.com/vanadium/docs/blob/master/glossary.md#mount-table
 [react]: http://facebook.github.io/react/
 [spa]: http://en.wikipedia.org/wiki/Single-page_application
 [vanadium-extension]: https://chrome.google.com/webstore/detail/vanadium-extension/jcaelnibllfoobpedofhlaobfcoknpap
-[vanadium-install]: https://v.io/installation/
-[vanadium-home]: https://v.io/
-[vdl]: https://v.io/glossary.html#vandium-definition-language-vdl-
+[vanadium-installation]: https://github.com/vanadium/docs/blob/master/installation.md
+[vdl]: https://github.com/vanadium/docs/blob/master/glossary.md#vandium-definition-language-vdl-
