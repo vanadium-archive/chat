@@ -21,11 +21,11 @@ Please file bugs and feature requests in our [issue tracker][issue-tracker].
 ### Running the shell client
 
 These instructions assume you have an up-to-date [Vanadium development
-environment][vanadium-installation] inside `$V23_ROOT`.
+environment][vanadium-installation] inside `$JIRI_ROOT`.
 
 In order to run the shell client:
 
-    cd $V23_ROOT/release/projects/chat
+    cd $JIRI_ROOT/release/projects/chat
     make run-shell
 
 This will generate Vanadium credentials (a new principal and a blessing) the
@@ -36,7 +36,7 @@ optional.
 
 If you'd only like to build the binary, not run it:
 
-    cd $V23_ROOT/release/projects/chat
+    cd $JIRI_ROOT/release/projects/chat
     make build-shell
 
 <a name="architecture"></a>
@@ -217,7 +217,7 @@ In order for the chat client to talk to the mounttable and proxy servers, you
 will need to get an identity from the identity server:
 
     export V23_CREDENTIALS=/tmp/vanadium-credentials
-    $V23_ROOT/release/go/bin/principal seekblessings
+    $JIRI_ROOT/release/go/bin/principal seekblessings
 
 Then run the binary and pass in the v23.namespace.root and v23.proxy flags.
 

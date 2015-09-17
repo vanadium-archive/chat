@@ -1,7 +1,7 @@
 SHELL := /bin/bash -euo pipefail
-export PATH := $(V23_ROOT)/release/go/bin:node_modules/.bin:$(V23_ROOT)/third_party/cout/node/bin:clients/shell/go/bin:$(PATH)
+export PATH := $(JIRI_ROOT)/release/go/bin:node_modules/.bin:$(JIRI_ROOT)/third_party/cout/node/bin:clients/shell/go/bin:$(PATH)
 export GOPATH := $(shell pwd)/clients/shell/go:$(GOPATH)
-export VDLPATH := $(shell pwd)/clients/shell/go/src:$(V23_ROOT)/release/go/src
+export VDLPATH := $(shell pwd)/clients/shell/go/src:$(JIRI_ROOT)/release/go/src
 GO := v23 go
 
 # This target causes any target files to be deleted if the target task fails.
@@ -84,18 +84,18 @@ all: build-shell build-web
 
 .PHONY: deploy-production
 deploy-production: build-web-assets
-	make -C $(V23_ROOT)/infrastructure/deploy chat-production
+	make -C $(JIRI_ROOT)/infrastructure/deploy chat-production
 
 .PHONY: deploy-staging
 deploy-staging: build-web-assets
-	make -C $(V23_ROOT)/infrastructure/deploy chat-staging
+	make -C $(JIRI_ROOT)/infrastructure/deploy chat-staging
 
 node_modules: package.json
 	npm prune
 	npm install
-	# Link Vanadium from V23_ROOT.
+	# Link Vanadium from JIRI_ROOT.
 	rm -rf ./node_modules/vanadium
-	cd "$(V23_ROOT)/release/javascript/core" && npm link
+	cd "$(JIRI_ROOT)/release/javascript/core" && npm link
 	npm link vanadium
 	touch node_modules
 
@@ -183,7 +183,7 @@ test-web: lint build-web
 # command so that we can then reference these vars in the Vanadium extension
 # and our prova command.
 test-web-runner: APP_FRAME := "./build/index.html?mtname=$(V23_NAMESPACE)"
-test-web-runner: VANADIUM_JS := $(V23_ROOT)/release/javascript/core
+test-web-runner: VANADIUM_JS := $(JIRI_ROOT)/release/javascript/core
 test-web-runner: BROWSER_OPTS := --options="--load-extension=$(VANADIUM_JS)/extension/build-test/,--ignore-certificate-errors,--enable-logging=stderr" $(BROWSER_OPTS)
 test-web-runner:
 	$(MAKE) -C $(VANADIUM_JS)/extension clean
@@ -199,15 +199,15 @@ test-web-runner:
 # This test takes additional environment variables (typically temporary)
 # - GOOGLE_BOT_USERNAME and GOOGLE_BOT_PASSWORD (To sign into Google/Chrome)
 # - CHROME_WEBDRIVER (The path to the chrome web driver)
-# - WORKSPACE (optional, defaults to $V23_ROOT/release/projects/chat)
+# - WORKSPACE (optional, defaults to $JIRI_ROOT/release/projects/chat)
 # - TEST_URL (optional, defaults to https://chat.staging.v.io)
 # - NO_XVFB (optional, defaults to using Xvfb. Set to true to watch the test.)
 # - BUILD_EXTENSION (optional, defaults to using the live one. Set to true to
 #                    use a local build of the Vanadium extension.)
 #
 # In addition, this test requires that maven, Xvfb, and xvfb-run be installed.
-# The HTML report will be in $V23_ROOT/release/projects/chat/htmlReports
-WORKSPACE ?= $(V23_ROOT)/release/projects/chat
+# The HTML report will be in $JIRI_ROOT/release/projects/chat/htmlReports
+WORKSPACE ?= $(JIRI_ROOT)/release/projects/chat
 TEST_URL ?= https://chat.staging.v.io
 ifndef NO_XVFB
 	XVFB := TMPDIR=/tmp xvfb-run -s '-ac -screen 0 1024x768x24'
@@ -223,7 +223,7 @@ ifdef BUILD_EXTENSION
 endif
 	WORKSPACE=$(WORKSPACE) $(XVFB) \
 	  mvn test \
-	  -f=$(V23_ROOT)/release/projects/chat/clients/web/test/ui/pom.xml \
+	  -f=$(JIRI_ROOT)/release/projects/chat/clients/web/test/ui/pom.xml \
 	  -Dtest=ChatUITest \
 	  -DchromeDriverBin=$(CHROME_WEBDRIVER) \
 	  -DhtmlReportsRelativePath=htmlReports \

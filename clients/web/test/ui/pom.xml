@@ -61,7 +61,7 @@
                 <goals><goal>add-source</goal></goals>
                 <configuration>
                     <sources>
-                        <source>${env.V23_ROOT}/release/javascript/core/test/ui/</source>
+                        <source>${env.JIRI_ROOT}/release/javascript/core/test/ui/</source>
                     </sources>
                 </configuration>
             </execution>
