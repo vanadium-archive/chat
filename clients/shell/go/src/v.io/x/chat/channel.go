@@ -303,13 +303,16 @@ func (cr *channel) sendMessageTo(member *member, messageText string) {
 
 	s := vdl.ChatClient(member.Path)
 
-	// The AllowedServersPolicy options require that the server matches the
-	// blessings we got when we globbed it.
-	opts := make([]rpc.CallOpt, len(member.Blessings))
-	for i, blessing := range member.Blessings {
-		opts[i] = options.AllowedServersPolicy{security.BlessingPattern(blessing)}
+	var opts []rpc.CallOpt
+	if len(member.Blessings) > 0 {
+		// The server must match the blessings we got when we globbed it.
+		// The AllowedServersPolicy options require that the server matches the
+		acl := access.AccessList{In: make([]security.BlessingPattern, len(member.Blessings))}
+		for i, b := range member.Blessings {
+			acl.In[i] = security.BlessingPattern(b)
+		}
+		opts = append(opts, options.ServerAuthorizer{acl})
 	}
-
 	if err := s.SendMessage(ctx, messageText, opts...); err != nil {
 		return // member has disconnected.
 	}
