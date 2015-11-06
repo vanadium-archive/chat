@@ -1,6 +1,6 @@
 SHELL := /bin/bash -euo pipefail
 
-NODE_DIR := $(shell jiri v23-profile env --profile=nodejs V23_TARGET_INSTALLATION_DIR=)
+NODE_DIR := $(shell jiri v23-profile list --info Target.InstallationDir nodejs)
 export PATH := $(JIRI_ROOT)/release/go/bin:node_modules/.bin:$(NODE_DIR)/bin:clients/shell/go/bin:$(PATH)
 export GOPATH := $(shell pwd)/clients/shell/go:$(GOPATH)
 export VDLPATH := $(shell pwd)/clients/shell/go/src:$(JIRI_ROOT)/release/go/src
