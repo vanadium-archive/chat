@@ -23,7 +23,7 @@ import (
 
 var (
 	mounttable  = flag.String("mounttable", "/ns.dev.v.io:8101", "Mounttable where channel is mounted.")
-	proxy       = flag.String("proxy", "proxy.dev.v.io:8100", "Proxy to listen on.")
+	proxy       = flag.String("proxy", "proxy", "Proxy to listen on.")
 	channelName = flag.String("channel", "users/vanadium.bot@gmail.com/apps/chat/public", "Channel to join.")
 )
 
