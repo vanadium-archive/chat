@@ -18,7 +18,7 @@ import (
 // containing Chat methods.
 type ChatClientMethods interface {
 	// SendMessage sends a message to a user.
-	SendMessage(ctx *context.T, text string, opts ...rpc.CallOpt) error
+	SendMessage(_ *context.T, text string, _ ...rpc.CallOpt) error
 }
 
 // ChatClientStub adds universal methods to ChatClientMethods.
@@ -45,7 +45,7 @@ func (c implChatClientStub) SendMessage(ctx *context.T, i0 string, opts ...rpc.C
 // implements for Chat.
 type ChatServerMethods interface {
 	// SendMessage sends a message to a user.
-	SendMessage(ctx *context.T, call rpc.ServerCall, text string) error
+	SendMessage(_ *context.T, _ rpc.ServerCall, text string) error
 }
 
 // ChatServerStubMethods is the server interface containing
