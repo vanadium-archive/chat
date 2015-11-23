@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+var security = require('vanadium').security;
+
 module.exports = {
   shortName: shortName,
   firstShortName: firstShortName,
@@ -14,7 +16,7 @@ function shortName(fullName) {
   // Split into components and see if any is an email address. A very
   // sophisticated technique is used to determine if the component is an email
   // address: presence of an "@" character.
-  var parts = fullName.split('/');  // security.ChainSeparator
+  var parts = fullName.split(security.ChainSeparator.val);
   for (var j = 0; j < parts.length; j++) {
     var p = parts[j];
     if (p.indexOf('@') > 0) {
