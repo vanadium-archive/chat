@@ -107,7 +107,7 @@ vanadium-binaries:
 	$(GO) install -a -tags wspr v.io/x/ref/cmd/servicerunner
 	$(GO) install \
 	v.io/x/ref/services/mounttable/mounttabled \
-	v.io/x/ref/services/proxy/proxyd \
+	v.io/x/ref/services/xproxy/xproxyd \
 	v.io/x/ref/cmd/{principal,vdl} \
 	v.io/x/ref/services/agent/agentd
 
