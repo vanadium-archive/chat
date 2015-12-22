@@ -18,8 +18,6 @@ import (
 	"v.io/x/ref/test/modules"
 )
 
-//go:generate jiri test generate
-
 var rootMT = modules.Register(func(env *modules.Env, args ...string) error {
 	ctx, shutdown := v23.Init()
 	defer shutdown()
@@ -229,4 +227,9 @@ func TestBroadcastMessage(t *testing.T) {
 			t.Errorf("Got m.SenderName = %v, want %v", got, want)
 		}
 	}
+}
+
+func TestMain(m *testing.M) {
+	modules.DispatchAndExitIfChild()
+	os.Exit(m.Run())
 }
