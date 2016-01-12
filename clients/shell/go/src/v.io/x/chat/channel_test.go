@@ -11,14 +11,15 @@ import (
 	"time"
 
 	"v.io/v23"
-	"v.io/v23/context"
 	"v.io/v23/options"
+	"v.io/x/lib/gosh"
+	"v.io/x/ref/lib/signals"
+	"v.io/x/ref/lib/v23test"
 	"v.io/x/ref/services/mounttable/mounttablelib"
-	"v.io/x/ref/test"
-	"v.io/x/ref/test/modules"
 )
 
-var rootMT = modules.Register(func(env *modules.Env, args ...string) error {
+// TODO(sadovsky): Switch to using v23test.Shell.StartRootMountTable.
+var rootMT = gosh.Register("rootMT", func() error {
 	ctx, shutdown := v23.Init()
 	defer shutdown()
 
@@ -30,34 +31,13 @@ var rootMT = modules.Register(func(env *modules.Env, args ...string) error {
 	if err != nil {
 		return fmt.Errorf("root failed: %v", err)
 	}
-	fmt.Fprintf(env.Stdout, "PID=%d\n", os.Getpid())
+	fmt.Printf("PID=%d\n", os.Getpid())
 	for _, ep := range server.Status().Endpoints {
-		fmt.Fprintf(env.Stdout, "MT_NAME=%s\n", ep.Name())
+		fmt.Printf("MT_NAME=%s\n", ep.Name())
 	}
-	modules.WaitForEOF(env.Stdin)
+	<-signals.ShutdownOnSignals(ctx)
 	return nil
-}, "rootMT")
-
-// Starts a mounttable.  Returns the name and a stop function.
-func startMountTable(t *testing.T, ctx *context.T) (string, func()) {
-	sh, err := modules.NewShell(ctx, nil, testing.Verbose(), t)
-	if err != nil {
-		t.Fatalf("unexpected error: %s", err)
-	}
-
-	mt, err := sh.Start(nil, rootMT, "--v23.tcp.address=127.0.0.1:0")
-	if err != nil {
-		t.Fatalf("failed to start root mount table: %s", err)
-	}
-	mt.ExpectVar("PID")
-	rootName := mt.ExpectVar("MT_NAME")
-
-	return rootName, func() {
-		if err := sh.Cleanup(nil, nil); err != nil {
-			t.Fatalf("failed to cleanup shell: %s", mt.Error())
-		}
-	}
-}
+})
 
 // Asserts that the channel contains members with expected names and no others.
 func AssertMembersWithNames(channel *channel, expectedNames []string, retry bool) error {
@@ -104,14 +84,17 @@ func AssertMembersWithNames(channel *channel, expectedNames []string, retry bool
 }
 
 func TestMembers(t *testing.T) {
-	ctx, shutdown := test.V23Init()
-	defer shutdown()
+	sh := v23test.NewShell(t, v23test.Opts{})
+	defer sh.Cleanup()
+	ctx := sh.Ctx
 
-	mounttable, stopMountTable := startMountTable(t, ctx)
-	defer stopMountTable()
+	c := sh.Fn(rootMT)
+	c.Args = append(c.Args, "--v23.tcp.address=127.0.0.1:0")
+	c.Start()
+	c.S.ExpectVar("PID")
+	mounttable := c.S.ExpectVar("MT_NAME")
 
 	proxy := ""
-
 	path := "path/to/channel"
 
 	// Create a new channel.
@@ -171,14 +154,17 @@ func TestMembers(t *testing.T) {
 }
 
 func TestBroadcastMessage(t *testing.T) {
-	ctx, shutdown := test.V23Init()
-	defer shutdown()
+	sh := v23test.NewShell(t, v23test.Opts{})
+	defer sh.Cleanup()
+	ctx := sh.Ctx
 
-	mounttable, stopMountTable := startMountTable(t, ctx)
-	defer stopMountTable()
+	c := sh.Fn(rootMT)
+	c.Args = append(c.Args, "--v23.tcp.address=127.0.0.1:0")
+	c.Start()
+	c.S.ExpectVar("PID")
+	mounttable := c.S.ExpectVar("MT_NAME")
 
 	proxy := ""
-
 	path := "path/to/channel"
 
 	channel, err := newChannel(ctx, mounttable, proxy, path)
@@ -230,6 +216,5 @@ func TestBroadcastMessage(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
-	modules.DispatchAndExitIfChild()
-	os.Exit(m.Run())
+	os.Exit(v23test.Run(m.Run))
 }
