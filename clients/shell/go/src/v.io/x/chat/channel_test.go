@@ -14,8 +14,8 @@ import (
 	"v.io/v23/options"
 	"v.io/x/lib/gosh"
 	"v.io/x/ref/lib/signals"
-	"v.io/x/ref/lib/v23test"
 	"v.io/x/ref/services/mounttable/mounttablelib"
+	"v.io/x/ref/test/v23test"
 )
 
 // TODO(sadovsky): Switch to using v23test.Shell.StartRootMountTable.
