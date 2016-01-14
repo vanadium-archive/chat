@@ -19,7 +19,7 @@ import (
 )
 
 // TODO(sadovsky): Switch to using v23test.Shell.StartRootMountTable.
-var rootMT = gosh.Register("rootMT", func() error {
+var rootMT = gosh.RegisterFunc("rootMT", func() error {
 	ctx, shutdown := v23.Init()
 	defer shutdown()
 
@@ -88,7 +88,7 @@ func TestMembers(t *testing.T) {
 	defer sh.Cleanup()
 	ctx := sh.Ctx
 
-	c := sh.Fn(rootMT)
+	c := sh.FuncCmd(rootMT)
 	c.Args = append(c.Args, "--v23.tcp.address=127.0.0.1:0")
 	c.Start()
 	c.S.ExpectVar("PID")
@@ -158,7 +158,7 @@ func TestBroadcastMessage(t *testing.T) {
 	defer sh.Cleanup()
 	ctx := sh.Ctx
 
-	c := sh.Fn(rootMT)
+	c := sh.FuncCmd(rootMT)
 	c.Args = append(c.Args, "--v23.tcp.address=127.0.0.1:0")
 	c.Start()
 	c.S.ExpectVar("PID")
@@ -216,5 +216,5 @@ func TestBroadcastMessage(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
-	os.Exit(v23test.Run(m.Run))
+	v23test.TestMain(m)
 }
