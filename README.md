@@ -227,14 +227,14 @@ There is a simple suite of tests for the shell client in
 `clients/shell/src/channel_test.go`.  You can run these tests with `make
 test-shell`.
 
-[blessings]: https://github.com/vanadium/docs/blob/master/glossary.md#blessing
+[blessings]: https://vanadium.github.io/glossary.html#blessing
 [client-shell]: #client-shell
 [client-web]: #client-web
 [gocui]: https://github.com/jroimartin/gocui
 [issue-tracker]: https://github.com/vanadium/chat/issues
-[mounttable]: https://github.com/vanadium/docs/blob/master/glossary.md#mount-table
+[mounttable]: https://vanadium.github.io/glossary.html#mount-table
 [react]: http://facebook.github.io/react/
 [spa]: http://en.wikipedia.org/wiki/Single-page_application
 [vanadium-extension]: https://chrome.google.com/webstore/detail/vanadium-extension/jcaelnibllfoobpedofhlaobfcoknpap
-[vanadium-installation]: https://github.com/vanadium/docs/blob/master/installation.md
-[vdl]: https://github.com/vanadium/docs/blob/master/glossary.md#vandium-definition-language-vdl-
+[vanadium-installation]: https://vanadium.github.io/installation/
+[vdl]: https://vanadium.github.io/glossary.html#vandium-definition-language-vdl-
