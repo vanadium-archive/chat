@@ -138,7 +138,8 @@ func (cr *channel) UserName() string {
 	// TODO(ashankar): It is wrong to assume that
 	// v23.GetPrincipal(ctx).BlessingStore().Default() returns a valid
 	// "sender". Think about the "who-am-I" API and use that here instead.
-	userName := fmt.Sprint(v23.GetPrincipal(cr.ctx).BlessingStore().Default())
+	userBlessings, _ := v23.GetPrincipal(cr.ctx).BlessingStore().Default()
+	userName := fmt.Sprint(userBlessings)
 	if sn := shortName(userName); sn != "" {
 		userName = sn
 	}
