@@ -84,7 +84,7 @@ func AssertMembersWithNames(channel *channel, expectedNames []string, retry bool
 }
 
 func TestMembers(t *testing.T) {
-	sh := v23test.NewShell(t, v23test.Opts{})
+	sh := v23test.NewShell(t, nil)
 	defer sh.Cleanup()
 	ctx := sh.Ctx
 
@@ -154,7 +154,7 @@ func TestMembers(t *testing.T) {
 }
 
 func TestBroadcastMessage(t *testing.T) {
-	sh := v23test.NewShell(t, v23test.Opts{})
+	sh := v23test.NewShell(t, nil)
 	defer sh.Cleanup()
 	ctx := sh.Ctx
 
