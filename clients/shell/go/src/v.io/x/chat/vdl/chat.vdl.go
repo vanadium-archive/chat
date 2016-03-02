@@ -14,6 +14,9 @@ import (
 	"v.io/v23/rpc"
 )
 
+func __VDLEnsureNativeBuilt_chat() {
+}
+
 // ChatClientMethods is the client interface
 // containing Chat methods.
 type ChatClientMethods interface {
