@@ -221,7 +221,7 @@ func (cr *channel) leave() error {
 	cr.server.Stop()
 
 	// Get the names we are mounted at.  Should only be one.
-	names := cr.server.Status().Mounts.Names()
+	names := rpc.PublisherNames(cr.server.Status().PublisherStatus)
 	// Delete the name and all sub-names in the hierarchy.
 	ns := v23.GetNamespace(cr.ctx)
 	for _, name := range names {
