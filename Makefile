@@ -6,6 +6,10 @@ export GOPATH := $(shell pwd)/clients/shell/go:$(GOPATH)
 export VDLPATH := $(shell pwd)/clients/shell/go/src:$(JIRI_ROOT)/release/go/src
 GO := jiri go
 
+# NOTE: we run npm using 'node npm' to avoid relying on the shebang line in the
+# npm script, which can exceed the Linux shebang length limit on Jenkins.
+NPM := $(NODE_DIR)/bin/npm
+
 # This target causes any target files to be deleted if the target task fails.
 # This is especially useful for browserify, which creates files even if it
 # fails.
@@ -93,12 +97,12 @@ deploy-staging: build-web-assets
 	make -C $(JIRI_ROOT)/infrastructure/deploy chat-staging
 
 node_modules: package.json
-	npm prune
-	npm install
+	node $(NPM) prune
+	node $(NPM) install
 	# Link Vanadium from JIRI_ROOT.
 	rm -rf ./node_modules/vanadium
-	cd "$(JIRI_ROOT)/release/javascript/core" && npm link
-	npm link vanadium
+	cd "$(JIRI_ROOT)/release/javascript/core" && node $(NPM) link
+	node $(NPM) link vanadium
 	touch node_modules
 
 # TODO(sadovsky): Make it so we only run "go install" when binaries are out of
