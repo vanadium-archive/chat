@@ -105,6 +105,7 @@ type channel struct {
 	chatServerMethods *chatServerMethods
 	// The chat server.
 	server rpc.Server
+	stop   func()
 	// Channel that emits incoming messages.
 	messages chan message
 	// Cached list of channel members.
@@ -210,7 +211,12 @@ func (cr *channel) join() error {
 	serverChat := vdl.ChatServer(cr.chatServerMethods)
 
 	// Create a new server.
-	_, cr.server, err = v23.WithNewServer(cr.ctx, name, serverChat, security.AllowEveryone())
+	ctx, cancel := context.WithCancel(cr.ctx)
+	_, cr.server, err = v23.WithNewServer(ctx, name, serverChat, security.AllowEveryone())
+	cr.stop = func() {
+		cancel()
+		<-cr.server.Closed()
+	}
 	return err
 }
 
@@ -218,7 +224,7 @@ func (cr *channel) join() error {
 // mounttable.
 func (cr *channel) leave() error {
 	// Stop serving.
-	cr.server.Stop()
+	cr.stop()
 
 	// Get the names we are mounted at.  Should only be one.
 	names := rpc.PublisherNames(cr.server.Status().PublisherStatus)
