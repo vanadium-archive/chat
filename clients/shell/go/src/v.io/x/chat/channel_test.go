@@ -15,12 +15,13 @@ import (
 	"v.io/x/lib/gosh"
 	"v.io/x/ref/lib/signals"
 	"v.io/x/ref/services/mounttable/mounttablelib"
+	"v.io/x/ref/test"
 	"v.io/x/ref/test/v23test"
 )
 
 // TODO(sadovsky): Switch to using v23test.Shell.StartRootMountTable.
 var rootMT = gosh.RegisterFunc("rootMT", func() error {
-	ctx, shutdown := v23.Init()
+	ctx, shutdown := test.V23Init()
 	defer shutdown()
 
 	mt, err := mounttablelib.NewMountTableDispatcher(ctx, "", "", "mounttable")
